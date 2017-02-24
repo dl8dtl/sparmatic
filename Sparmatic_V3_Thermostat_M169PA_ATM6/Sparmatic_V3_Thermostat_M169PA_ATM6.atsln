@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Sparmatic_V3_Thermostat_M169PA_ATM6", "Sparmatic_V3_Thermostat_M169PA_ATM6\Sparmatic_V3_Thermostat_M169PA_ATM6.asmproj", "{644A79F4-1310-4DC2-A5D9-AE92128D3241}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{644A79F4-1310-4DC2-A5D9-AE92128D3241}.Debug|AVR.ActiveCfg = Debug|AVR
+		{644A79F4-1310-4DC2-A5D9-AE92128D3241}.Debug|AVR.Build.0 = Debug|AVR
+		{644A79F4-1310-4DC2-A5D9-AE92128D3241}.Release|AVR.ActiveCfg = Release|AVR
+		{644A79F4-1310-4DC2-A5D9-AE92128D3241}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
