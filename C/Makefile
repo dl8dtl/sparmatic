@@ -15,7 +15,7 @@ SRCS = $(OBJS:.o=.cpp)
 all: comet.elf
 
 comet.elf: $(OBJS)
-	$(CXX) $(CXXFLAGS) -o comet.elf $(OBJS) $(LIBS)
+	$(CC) $(CFLAGS) -o comet.elf $(OBJS) $(LIBS)
 
 clean:
 	rm -rf $(OBJS) comet.elf
