@@ -747,6 +747,8 @@ void ioinit(void)
     ADMUX = 0b01000001; //AVcc as reference, channel2, iNTCon
     ADCSRA = 0b00010011; //Prescaler 8, 62.5kHz
     //DIDR0 = 0b00000111; // contradicts earlier setting above
+    // setup PinChange for Buttons:
+    PCMSK1 = 0b11110001;
     //setup PinChange for Reflex coupler / Battery remove alert:
     PCMSK0 = 0b00000011;
     EIMSK = (1<<PCIE1) | (1<<PCIE0); //enable pin change on PCINT15...8 // PCINT7...0
