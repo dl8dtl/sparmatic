@@ -1628,7 +1628,7 @@ void MotorControl(void)
         rv = PutCharacter('?', 2, 0);
         rv = PutCharacter('O', 2, rv);
         rv = PutCharacter('K', 2, rv);
-        PutCharacter('?', 1, rv);
+        PutCharacter('?', 2, rv);
     }
     AdaptStep++;
 }
@@ -1643,7 +1643,7 @@ void ReadButtons(void)
     //                      NOIE   N
     //                      CKMN   C
     //                      1 EU   2
-    uint8_t pins = PINB & 0b11110001;
+    uint8_t pins = ~PINB & 0b11110001;
     // mask used pins and swap nibbles, put all button pins together -> 000bbbbb
     pins = (pins << 4) | (pins >> 4);
     // if no button is pressed, clear button value and status flag
