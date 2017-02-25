@@ -1619,7 +1619,7 @@ void MotorControl(void)
     if ((Status0 & Adapt) == 0)
         return;
     // in adaptation mode, increase adaptation step
-    if (AdaptStep != 1)
+    if (AdaptStep == 1)
     {
         uint8_t rv = PutCharacter('I', 1, 0);
         rv = PutCharacter('N', 1, rv);
