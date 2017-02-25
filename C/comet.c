@@ -911,7 +911,7 @@ static void Calc_Temperature(void)
     }
     else
     {
-        TempInt = -50; // init with -5°C
+        TempInt = 0;
         for (int i = 1;; i++)
         {
             if (NTCIntTable[i] == 0)
@@ -924,7 +924,7 @@ static void Calc_Temperature(void)
             {
                 // if table value is lower then read value, skip to fine reolution
                 uint16_t step = NTCIntTable[i - 1] - NTCIntTable[i];
-                uint16_t delta = ratio - NTCIntTable[i - 1];
+                uint16_t delta = NTCIntTable[i - 1] - ratio;
                 TempInt += delta / (step / 50); // divide values with 50, 0.1° resolution
                 break;
             }
