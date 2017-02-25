@@ -931,8 +931,8 @@ static void Calc_Temperature(void)
             TempInt += 50;
         }
     }
-    Status0 |= Adapt;
-    Regulate();
+    if (!(Status0 & Adapt))
+        Regulate();
     Status2 |= TX_SSPI;
 }
 
