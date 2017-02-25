@@ -2817,7 +2817,7 @@ bool Menu_ZeitSub3(uint8_t task)
     char b[3];
     DivDez(TOD.Days + 1, b); // add 1 to days value to display 1..31
     uint8_t rv = PutCharacter(b[1], 1, 0);
-    PutCharacter(b[0], 1, 0);
+    PutCharacter(b[0], 1, rv);
     rv = PutCharacter('?', 2, 0);
     PutCharacter('?', 2, rv);
     DivDez(TOD.Months + 1, b); // add 1 to month value to display 1...12
@@ -2866,7 +2866,7 @@ bool Menu_ZeitSub4(uint8_t task)
     if (b[1] == '0')
         b[1] = '?';
     uint8_t rv = PutCharacter(b[1], 1, 0);
-    PutCharacter(b[0], 1, 0);
+    PutCharacter(b[0], 1, rv);
     rv = PutCharacter('?', 2, 0);
     PutCharacter('?', 2, rv);
     SetColon();
@@ -2912,7 +2912,7 @@ bool Menu_ZeitSub5(uint8_t task)
     if (b[1] == '0')
         b[1] = '?';
     uint8_t rv = PutCharacter(b[1], 3, 0);
-    PutCharacter(b[0], 3, 0);
+    PutCharacter(b[0], 3, rv);
     DivDez(TOD.Minutes, b);
     rv = PutCharacter(b[1], 1, 2);
     PutCharacter(b[0], 1, rv);
