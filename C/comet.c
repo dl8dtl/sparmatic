@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9ea32de92803 2017/02/26 22:03:23 Joerg $ */
+/* $Id: comet.c,v 1e21eb506f33 2017/02/26 22:22:42 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2634,7 +2634,7 @@ bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 }
 
 
-bool Menu_Temp (uint8_t task __attribute__((unused)))
+bool Menu_Temp(uint8_t task __attribute__((unused)))
 {
     uint8_t rv = PutCharacter('T', 3, 0);
     rv = PutCharacter('E', 3, rv);
@@ -2646,6 +2646,8 @@ bool Menu_Temp (uint8_t task __attribute__((unused)))
 
 bool Menu_TempSub1(uint8_t task)
 {
+    Status0 |= MenuWork;
+
     switch (task)
     {
     case 1:
