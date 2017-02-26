@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 13929b3e3792 2017/02/26 21:52:14 Joerg $ */
+/* $Id: comet.c,v 9ea32de92803 2017/02/26 22:03:23 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2901,7 +2901,7 @@ bool Menu_ZeitSub4(uint8_t task)
     SetColon();
     DivDez(TOD.Minutes, b);
     rv = PutCharacter(b[1], 3, 2);
-    PutCharacter(b[0], 1, rv);
+    PutCharacter(b[0], 3, rv);
 
     return false;
 }
