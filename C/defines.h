@@ -263,6 +263,5 @@ enum user_if_modes
 
 struct eedata
 {
-    uint8_t Reserved[0x1e0];    /* Kompat. zu Knut Ballhauses FW */
     uint8_t Minutes, Hours, Days, Months, Years;
 };
