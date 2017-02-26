@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 1e21eb506f33 2017/02/26 22:22:42 Joerg $ */
+/* $Id: comet.c,v 9ab9145047d0 2017/02/26 22:33:19 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2410,7 +2410,8 @@ static bool MenuProg_Com(uint8_t task)
             out[2] = '?'; // clear leading zero
         uint8_t rv = PutCharacter(out[2], 1, 0);
         rv = PutCharacter(out[1], 1, rv);
-        PutCharacter(out[0], 1, rv);
+        rv = PutCharacter(out[0], 1, rv);
+        PutCharacter('0', 1, rv);
         rv = PutCharacter('?', 2, 0);
         rv = PutCharacter('?', 2, rv);
         rv = PutCharacter('?', 2, rv);
