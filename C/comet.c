@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 1351a9c84936 2017/02/26 17:09:34 Joerg $ */
+/* $Id: comet.c,v d84837936255 2017/02/26 17:36:19 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1123,7 +1123,7 @@ void Regulate(void)
                 CloseValve(10 * dt);
                 break;
         }
-    else if (diff <= 2)
+    else if (diff <= -2)
         // cool
         switch (t3)
         {
@@ -1137,7 +1137,7 @@ void Regulate(void)
                 CloseValve(10 * dt);
                 break;
         }
-    else if (diff <= 6)
+    else if (diff <= -6)
         // cold
         switch (t3)
         {
@@ -1151,7 +1151,7 @@ void Regulate(void)
                 RegWay = 0;
                 return;
         }
-    else if (diff <= 15)
+    else if (diff <= -15)
         // below
         switch (t3)
         {
