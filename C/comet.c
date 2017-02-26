@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v d84837936255 2017/02/26 17:36:19 Joerg $ */
+/* $Id: comet.c,v 13929b3e3792 2017/02/26 21:52:14 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1084,7 +1084,8 @@ void Regulate(void)
     int16_t diff = TempInt - SetTemp;
 
     if (diff >= 15)
-        // over temperature
+    {
+        FuzzyVal = FuzzAbove;
         switch (t3)
         {
             case TStatic:
@@ -1095,8 +1096,10 @@ void Regulate(void)
                 CloseValve(100);
                 break;
         }
+    }
     else if (diff >= 6)
-        // hot
+    {
+        FuzzyVal = FuzzHot;
         switch (t3)
         {
             case TStatic:
@@ -1109,8 +1112,10 @@ void Regulate(void)
                 CloseValve(20 * dt);
                 break;
         }
+    }
     else if (diff >= 2)
-        // warm
+    {
+        FuzzyVal = FuzzWarm;
         switch (t3)
         {
             case TStatic:
@@ -1123,8 +1128,10 @@ void Regulate(void)
                 CloseValve(10 * dt);
                 break;
         }
+    }
     else if (diff <= -2)
-        // cool
+    {
+        FuzzyVal = FuzzCool;
         switch (t3)
         {
             case TStatic:
@@ -1137,8 +1144,10 @@ void Regulate(void)
                 CloseValve(10 * dt);
                 break;
         }
+    }
     else if (diff <= -6)
-        // cold
+    {
+        FuzzyVal = FuzzCold;
         switch (t3)
         {
             case TStatic:
@@ -1151,8 +1160,10 @@ void Regulate(void)
                 RegWay = 0;
                 return;
         }
+    }
     else if (diff <= -15)
-        // below
+    {
+        FuzzyVal = FuzzBelow;
         switch (t3)
         {
             case TStatic:
@@ -1163,9 +1174,11 @@ void Regulate(void)
                 OpenValve(100);
                 break;
         }
+    }
     else /* -1 ... 1 */
     {
         // nothing to do now
+        FuzzyVal = FuzzOK;
         RegWay = 0;
         return;
     }

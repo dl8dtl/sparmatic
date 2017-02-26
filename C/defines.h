@@ -196,6 +196,17 @@ extern uint8_t DailyTimer[90];
 
 extern uint8_t DebugBuffer[256];
 
+enum fuzzy
+{
+   FuzzOK = 0,
+   FuzzWarm = 0x04,
+   FuzzHot = 0x08,
+   FuzzCool = 0x0c,
+   FuzzCold = 0x10,
+   FuzzAbove = 0x14,
+   FuzzBelow = 0x18,
+};
+
 /* User Interface Modes (0..255) */
 enum user_if_modes
 {
