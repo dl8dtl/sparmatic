@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v eb1e004ccf29 2017/02/26 12:01:42 Joerg $ */
+/* $Id: comet.c,v 1351a9c84936 2017/02/26 17:09:34 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2033,7 +2033,7 @@ bool Menu_Dbg_2(uint8_t task __attribute__((unused)))
     PutCharacter('I', 1, rv);
 
     char b[4];
-    DivDez(Position, b);
+    DivHL(Position, b);
     rv = PutCharacter(b[3], 2, 0);
     rv = PutCharacter(b[2], 2, rv);
     rv = PutCharacter(b[1], 2, rv);
@@ -2050,7 +2050,7 @@ bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
     PutCharacter('P', 1, rv);
 
     char b[4];
-    DivDez(ValveTop, b);
+    DivHL(ValveTop, b);
     rv = PutCharacter(b[3], 2, 0);
     rv = PutCharacter(b[2], 2, rv);
     rv = PutCharacter(b[1], 2, rv);
