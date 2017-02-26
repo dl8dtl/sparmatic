@@ -1,3 +1,14 @@
+/*
+ * Sparmatic/Comet (V2) Electronic Heating Valve Operating Firmware
+ *
+ * Translation of Knut Ballhause's Assembly Program into C,
+ * translation by Joerg Wunsch.
+ *
+ * Placed into the Public Domain.
+ */
+
+/* $Id: comet.c,v 1f26f3fcbfd4 2017/02/26 07:42:01 j $ */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,12 +22,14 @@
 
 #include "defines.h"
 
+/* These variables use hardwired registers in assembly version */
 uint8_t MotPWMCT;        /* r4 */
 uint8_t Prescaler1;      /* r7 */
 uint8_t ButtonDebounce;     /* r19 */
 uint8_t MenuID;             /* r0 */
 uint8_t ActiveCT;           /* r22 */
 
+/* Normal global variables */
 int16_t TempInt;
 int16_t TempIntOld;
 int8_t DeltaTemp1;
