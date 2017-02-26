@@ -1,3 +1,14 @@
+/*
+ * Sparmatic/Comet (V2) Electronic Heating Valve Operating Firmware
+ *
+ * Translation of Knut Ballhause's Assembly Program into C,
+ * translation by Joerg Wunsch.
+ *
+ * Placed into the Public Domain.
+ */
+
+/* $Id: defines.h,v 22169c7737d9 2017/02/26 22:38:02 Joerg $ */
+
 #include <stdint.h>
 
 #define Reg_P_Mult		12				/* regulator P multiplier */
