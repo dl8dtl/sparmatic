@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 1f26f3fcbfd4 2017/02/26 07:42:01 j $ */
+/* $Id: comet.c,v eb1e004ccf29 2017/02/26 12:01:42 Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -861,6 +861,9 @@ static void Store_Time(void)
 static void ReadBack_Time(void)
 {
     eeprom_read_block(&TOD.Minutes, &eemem.Minutes, 5);
+    if (TOD.Minutes == 255)
+        // uninitialized EEPROM, clear TOD
+        memset(&TOD, 0, sizeof(TOD));
 }
 
 static void StartMain(void)
