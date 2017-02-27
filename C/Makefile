@@ -1,3 +1,5 @@
+# $Id$
+
 CC = avr-gcc
 CXX = avr-g++
 
