@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9ab9145047d0 2017/02/26 22:33:19 Joerg $ */
+/* $Id: comet.c,v bcd90defeddd 2017/02/27 21:52:30 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,7 +26,7 @@
 uint8_t MotPWMCT;        /* r4 */
 uint8_t Prescaler1;      /* r7 */
 uint8_t ButtonDebounce;     /* r19 */
-uint8_t MenuID;             /* r0 */
+const __flash struct menuentry *menuID;
 uint8_t ActiveCT;           /* r22 */
 
 /* Normal global variables */
@@ -109,158 +109,6 @@ const __flash uint16_t NTCIntTable[] =
     0
 };
 
-struct menuentry
-{
-    uint8_t main;
-    uint8_t sub;
-};
-
-const __flash struct menuentry MenuTable[] =
-{
-    { .main = 0x00, .sub = 0x00, },   // MODE   ID0
-    { .main = 0x00, .sub = 0x10, },   // MANU   ID1
-    { .main = 0x00, .sub = 0x11, },   // MEnt   ID2
-    { .main = 0x00, .sub = 0x20, },   // AUTO   ID3
-    { .main = 0x00, .sub = 0x21, },   // AEnt   ID4
-    { .main = 0x01, .sub = 0x00, },   // PROG   ID5
-    { .main = 0x01, .sub = 0x10, },   // TAG1   ID6
-    { .main = 0x01, .sub = 0x11, },
-    { .main = 0x01, .sub = 0x12, },
-    { .main = 0x01, .sub = 0x13, },
-    { .main = 0x01, .sub = 0x14, },
-    { .main = 0x01, .sub = 0x15, },
-    { .main = 0x01, .sub = 0x16, },
-    { .main = 0x01, .sub = 0x17, },
-    { .main = 0x01, .sub = 0x18, },
-    { .main = 0x01, .sub = 0x19, },
-    { .main = 0x01, .sub = 0x20, },   // TAG2
-    { .main = 0x01, .sub = 0x21, },
-    { .main = 0x01, .sub = 0x22, },
-    { .main = 0x01, .sub = 0x23, },
-    { .main = 0x01, .sub = 0x24, },
-    { .main = 0x01, .sub = 0x25, },
-    { .main = 0x01, .sub = 0x26, },
-    { .main = 0x01, .sub = 0x27, },
-    { .main = 0x01, .sub = 0x28, },
-    { .main = 0x01, .sub = 0x29, },
-    { .main = 0x01, .sub = 0x30, },   // TAG3
-    { .main = 0x01, .sub = 0x31, },
-    { .main = 0x01, .sub = 0x32, },
-    { .main = 0x01, .sub = 0x33, },
-    { .main = 0x01, .sub = 0x34, },
-    { .main = 0x01, .sub = 0x35, },
-    { .main = 0x01, .sub = 0x36, },
-    { .main = 0x01, .sub = 0x37, },
-    { .main = 0x01, .sub = 0x38, },
-    { .main = 0x01, .sub = 0x39, },
-    { .main = 0x01, .sub = 0x40, },   // TAG4
-    { .main = 0x01, .sub = 0x41, },
-    { .main = 0x01, .sub = 0x42, },
-    { .main = 0x01, .sub = 0x43, },
-    { .main = 0x01, .sub = 0x44, },
-    { .main = 0x01, .sub = 0x45, },
-    { .main = 0x01, .sub = 0x46, },
-    { .main = 0x01, .sub = 0x47, },
-    { .main = 0x01, .sub = 0x48, },
-    { .main = 0x01, .sub = 0x49, },
-    { .main = 0x01, .sub = 0x50, },   // TAG5
-    { .main = 0x01, .sub = 0x51, },
-    { .main = 0x01, .sub = 0x52, },
-    { .main = 0x01, .sub = 0x53, },
-    { .main = 0x01, .sub = 0x54, },
-    { .main = 0x01, .sub = 0x55, },
-    { .main = 0x01, .sub = 0x56, },
-    { .main = 0x01, .sub = 0x57, },
-    { .main = 0x01, .sub = 0x58, },
-    { .main = 0x01, .sub = 0x59, },
-    { .main = 0x01, .sub = 0x60, },   // TAG6
-    { .main = 0x01, .sub = 0x61, },
-    { .main = 0x01, .sub = 0x62, },
-    { .main = 0x01, .sub = 0x63, },
-    { .main = 0x01, .sub = 0x64, },
-    { .main = 0x01, .sub = 0x65, },
-    { .main = 0x01, .sub = 0x66, },
-    { .main = 0x01, .sub = 0x67, },
-    { .main = 0x01, .sub = 0x68, },
-    { .main = 0x01, .sub = 0x69, },
-    { .main = 0x01, .sub = 0x70, },   // TAG7
-    { .main = 0x01, .sub = 0x71, },
-    { .main = 0x01, .sub = 0x72, },
-    { .main = 0x01, .sub = 0x73, },
-    { .main = 0x01, .sub = 0x74, },
-    { .main = 0x01, .sub = 0x75, },
-    { .main = 0x01, .sub = 0x76, },
-    { .main = 0x01, .sub = 0x77, },
-    { .main = 0x01, .sub = 0x78, },
-    { .main = 0x01, .sub = 0x79, },
-    { .main = 0x01, .sub = 0x80, },   // T1-5
-    { .main = 0x01, .sub = 0x81, },
-    { .main = 0x01, .sub = 0x82, },
-    { .main = 0x01, .sub = 0x83, },
-    { .main = 0x01, .sub = 0x84, },
-    { .main = 0x01, .sub = 0x85, },
-    { .main = 0x01, .sub = 0x86, },
-    { .main = 0x01, .sub = 0x87, },
-    { .main = 0x01, .sub = 0x88, },
-    { .main = 0x01, .sub = 0x89, },
-    { .main = 0x01, .sub = 0x90, },   // T1-6
-    { .main = 0x01, .sub = 0x91, },
-    { .main = 0x01, .sub = 0x92, },
-    { .main = 0x01, .sub = 0x93, },
-    { .main = 0x01, .sub = 0x94, },
-    { .main = 0x01, .sub = 0x95, },
-    { .main = 0x01, .sub = 0x96, },
-    { .main = 0x01, .sub = 0x97, },
-    { .main = 0x01, .sub = 0x98, },
-    { .main = 0x01, .sub = 0x99, },
-    { .main = 0x01, .sub = 0xA0, },   // T1-7
-    { .main = 0x01, .sub = 0xA1, },
-    { .main = 0x01, .sub = 0xA2, },
-    { .main = 0x01, .sub = 0xA3, },
-    { .main = 0x01, .sub = 0xA4, },
-    { .main = 0x01, .sub = 0xA5, },
-    { .main = 0x01, .sub = 0xA6, },
-    { .main = 0x01, .sub = 0xA7, },
-    { .main = 0x01, .sub = 0xA8, },
-    { .main = 0x01, .sub = 0xA9, },
-    { .main = 0x02, .sub = 0x00, },   // TEMP   ID64
-    { .main = 0x02, .sub = 0x10, },   // onT    ID65
-    { .main = 0x02, .sub = 0x20, },   // offT   ID66
-    { .main = 0x03, .sub = 0x00, },   // ZEIT   ID67
-    { .main = 0x03, .sub = 0x10, },   // set year       ID68
-    { .main = 0x03, .sub = 0x20, },   // set month      ID69
-    { .main = 0x03, .sub = 0x30, },   // set date       ID70
-    { .main = 0x03, .sub = 0x40, },   // set hour       ID71
-    { .main = 0x03, .sub = 0x50, },   // set minute     ID72
-    { .main = 0x04, .sub = 0x00, },   // FENS           ID73
-    { .main = 0x04, .sub = 0x10, },   // HOCH           ID74
-    { .main = 0x04, .sub = 0x11, },   // time resume    ID75
-    { .main = 0x04, .sub = 0x20, },   // MITT           ID76
-    { .main = 0x04, .sub = 0x21, },   // time resume    ID77
-    { .main = 0x04, .sub = 0x30, },   // NIED           ID78
-    { .main = 0x04, .sub = 0x31, },   // time resume    ID79
-    { .main = 0x05, .sub = 0x00, },   // RESET          ID80
-    { .main = 0x05, .sub = 0x10, },   // OK             ID81
-    { .main = 0x06, .sub = 0x00, },   // ADAP           ID82
-    { .main = 0x06, .sub = 0x10, },   // ADAP           ID83
-    { .main = 0x07, .sub = 0x00, },   // URLA           ID84
-    { .main = 0x07, .sub = 0x10, },   // set date       ID85
-    { .main = 0x07, .sub = 0x20, },   // set hour       ID86
-    { .main = 0x07, .sub = 0x30, },   // set temp       ID87
-    { .main = 0x08, .sub = 0x00, },   // INST           ID88
-    { .main = 0x08, .sub = 0x10, },   // <<<<           ID89
-    { .main = 0x09, .sub = 0x00, },   // OFFS           ID90
-    { .main = 0x09, .sub = 0x10, },   // set temp       ID91
-    { .main = 0x0A, .sub = 0x00, },   // DBUG           ID92
-    { .main = 0x0A, .sub = 0x10, },   // FW             ID93
-    { .main = 0x0A, .sub = 0x20, },   // Fuzz           ID94
-    { .main = 0x0A, .sub = 0x30, },   // Olim           ID95
-    { .main = 0x0A, .sub = 0x40, },   // VTop
-    { .main = 0x0A, .sub = 0x50, },   // RWay
-
-    { .main = 0xFF, .sub = 0xFF, },   // menu end
-};
-
 static bool Menu_Adapt(uint8_t);
 static bool Menu_AdaptSub1(uint8_t);
 static bool Menu_Dbg_1(uint8_t);
@@ -302,10 +150,7 @@ static bool Menu_Reset(uint8_t);
 static bool Menu_ResetSub1(uint8_t);
 static bool Menu_Temp(uint8_t);
 static bool Menu_TempSub1(uint8_t);
-static bool Menu_TempSub1(uint8_t);
 static bool Menu_Urla(uint8_t);
-static bool Menu_UrlaSub1(uint8_t);
-static bool Menu_UrlaSub1(uint8_t);
 static bool Menu_UrlaSub1(uint8_t);
 static bool Menu_Zeit(uint8_t);
 static bool Menu_ZeitSub1(uint8_t);
@@ -316,150 +161,158 @@ static bool Menu_ZeitSub5(uint8_t);
 
 typedef bool (*menuFunc)(uint8_t);
 
-const __flash menuFunc MenuJump[] =
+struct menuentry
 {
-    Menu_Mode,
-    Menu_ModeSub1,
-    Menu_ModeSub11,
-    Menu_ModeSub2,
-    Menu_ModeSub21,
-    Menu_Prog,
-    Menu_ProgSub1,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub2,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub3,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub4,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub5,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub6,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub7,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub8,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSub9,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_ProgSubA,
-    Menu_ProgSub11,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub13,
-    Menu_ProgSub12,
-    Menu_ProgSub14,
-    Menu_Temp,
-    Menu_TempSub1,
-    Menu_TempSub1,
-    Menu_Zeit,
-    Menu_ZeitSub1,
-    Menu_ZeitSub2,
-    Menu_ZeitSub3,
-    Menu_ZeitSub4,
-    Menu_ZeitSub5,
-    Menu_Fens,
-    Menu_FensSub1,
-    Menu_FensSub11,
-    Menu_FensSub2,
-    Menu_FensSub11,
-    Menu_FensSub3,
-    Menu_FensSub11,
-    Menu_Reset,
-    Menu_ResetSub1,
-    Menu_Adapt,
-    Menu_AdaptSub1,
-    Menu_Urla,
-    Menu_UrlaSub1,
-    Menu_UrlaSub1,
-    Menu_UrlaSub1,
-    Menu_Inst,
-    Menu_InstSub1,
-    Menu_Offs,
-    Menu_OffsSub1,
-    Menu_Debug,
-    Menu_Dbg_FW,
-    Menu_Dbg_1,
-    Menu_Dbg_2,
-    Menu_Dbg_3,
-    Menu_Dbg_4,
+    uint8_t main;
+    uint8_t sub;
+    menuFunc func;
 };
 
+const __flash struct menuentry MenuTable[] =
+{
+    { .main = 0x00, .sub = 0x00, .func = Menu_Mode      }, // MODE   ID0
+    { .main = 0x00, .sub = 0x10, .func = Menu_ModeSub1  }, // MANU   ID1
+    { .main = 0x00, .sub = 0x11, .func = Menu_ModeSub11 }, // MEnt   ID2
+    { .main = 0x00, .sub = 0x20, .func = Menu_ModeSub2  }, // AUTO   ID3
+    { .main = 0x00, .sub = 0x21, .func = Menu_ModeSub21 }, // AEnt   ID4
+    { .main = 0x01, .sub = 0x00, .func = Menu_Prog      }, // PROG   ID5
+    { .main = 0x01, .sub = 0x10, .func = Menu_ProgSub1  }, // TAG1   ID6
+    { .main = 0x01, .sub = 0x11, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x12, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x13, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x14, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x15, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x16, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x17, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x18, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x19, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x20, .func = Menu_ProgSub2  }, // TAG2
+    { .main = 0x01, .sub = 0x21, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x22, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x23, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x24, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x25, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x26, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x27, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x28, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x29, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x30, .func = Menu_ProgSub3  }, // TAG3
+    { .main = 0x01, .sub = 0x31, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x32, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x33, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x34, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x35, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x36, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x37, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x38, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x39, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x40, .func = Menu_ProgSub4  }, // TAG4
+    { .main = 0x01, .sub = 0x41, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x42, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x43, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x44, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x45, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x46, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x47, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x48, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x49, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x50, .func = Menu_ProgSub5  }, // TAG5
+    { .main = 0x01, .sub = 0x51, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x52, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x53, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x54, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x55, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x56, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x57, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x58, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x59, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x60, .func = Menu_ProgSub6  }, // TAG6
+    { .main = 0x01, .sub = 0x61, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x62, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x63, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x64, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x65, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x66, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x67, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x68, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x69, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x70, .func = Menu_ProgSub7  }, // TAG7
+    { .main = 0x01, .sub = 0x71, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x72, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x73, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x74, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x75, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x76, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x77, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x78, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x79, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x80, .func = Menu_ProgSub8  }, // T1-5
+    { .main = 0x01, .sub = 0x81, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x82, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x83, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x84, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x85, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x86, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x87, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x88, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x89, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0x90, .func = Menu_ProgSub9  }, // T1-6
+    { .main = 0x01, .sub = 0x91, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0x92, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x93, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x94, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x95, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x96, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x97, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0x98, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0x99, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0xA0, .func = Menu_ProgSubA  }, // T1-7
+    { .main = 0x01, .sub = 0xA1, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0xA2, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xA3, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xA4, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xA5, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xA6, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xA7, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xA8, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xA9, .func = Menu_ProgSub14 },
+    { .main = 0x02, .sub = 0x00, .func = Menu_Temp      }, // TEMP   ID64
+    { .main = 0x02, .sub = 0x10, .func = Menu_TempSub1  }, // onT    ID65
+    { .main = 0x02, .sub = 0x20, .func = Menu_TempSub1  }, // offT   ID66
+    { .main = 0x03, .sub = 0x00, .func = Menu_Zeit      }, // ZEIT   ID67
+    { .main = 0x03, .sub = 0x10, .func = Menu_ZeitSub1  }, // set year   ID68
+    { .main = 0x03, .sub = 0x20, .func = Menu_ZeitSub2  }, // set month  ID69
+    { .main = 0x03, .sub = 0x30, .func = Menu_ZeitSub3  }, // set date   ID70
+    { .main = 0x03, .sub = 0x40, .func = Menu_ZeitSub4  }, // set hour   ID71
+    { .main = 0x03, .sub = 0x50, .func = Menu_ZeitSub5  }, // set minute ID72
+    { .main = 0x04, .sub = 0x00, .func = Menu_Fens      }, // FENS       ID73
+    { .main = 0x04, .sub = 0x10, .func = Menu_FensSub1  }, // HOCH       ID74
+    { .main = 0x04, .sub = 0x11, .func = Menu_FensSub11 }, // time resume ID75
+    { .main = 0x04, .sub = 0x20, .func = Menu_FensSub2  }, // MITT       ID76
+    { .main = 0x04, .sub = 0x21, .func = Menu_FensSub11 }, // time resume ID77
+    { .main = 0x04, .sub = 0x30, .func = Menu_FensSub3  }, // NIED       ID78
+    { .main = 0x04, .sub = 0x31, .func = Menu_FensSub11 }, // time resume ID79
+    { .main = 0x05, .sub = 0x00, .func = Menu_Reset     }, // RESET      ID80
+    { .main = 0x05, .sub = 0x10, .func = Menu_ResetSub1 }, // OK         ID81
+    { .main = 0x06, .sub = 0x00, .func = Menu_Adapt     }, // ADAP       ID82
+    { .main = 0x06, .sub = 0x10, .func = Menu_AdaptSub1 }, // ADAP       ID83
+    { .main = 0x07, .sub = 0x00, .func = Menu_Urla      }, // URLA       ID84
+    { .main = 0x07, .sub = 0x10, .func = Menu_UrlaSub1  }, // set date   ID85
+    { .main = 0x07, .sub = 0x20, .func = Menu_UrlaSub1  }, // set hour   ID86
+    { .main = 0x07, .sub = 0x30, .func = Menu_UrlaSub1  }, // set temp   ID87
+    { .main = 0x08, .sub = 0x00, .func = Menu_Inst      }, // INST       ID88
+    { .main = 0x08, .sub = 0x10, .func = Menu_InstSub1  }, // <<<<       ID89
+    { .main = 0x09, .sub = 0x00, .func = Menu_Offs      }, // OFFS       ID90
+    { .main = 0x09, .sub = 0x10, .func = Menu_OffsSub1  }, // set temp   ID91
+    { .main = 0x0A, .sub = 0x00, .func = Menu_Debug     }, // DBUG       ID92
+    { .main = 0x0A, .sub = 0x10, .func = Menu_Dbg_FW    }, // FW         ID93
+    { .main = 0x0A, .sub = 0x20, .func = Menu_Dbg_1     }, // Fuzz       ID94
+    { .main = 0x0A, .sub = 0x30, .func = Menu_Dbg_2     }, // Olim       ID95
+    { .main = 0x0A, .sub = 0x40, .func = Menu_Dbg_3     }, // VTop
+    { .main = 0x0A, .sub = 0x50, .func = Menu_Dbg_4     }, // RWay
+
+    { .main = 0xFF, .sub = 0xFF, .func = 0},   // menu end
+};
 
 struct eedata eemem EEMEM;
 
@@ -1757,7 +1610,7 @@ static void Get_Menu(uint8_t task)
     // if work menu is selected, skip new menu selection and go to current menu
     if (Status0 & MenuWork)
     {
-        if (!MenuJump[MenuID](task))
+        if (!menuID->func(task))
             return;
         // if the menufunction returned "true", re-enter search
         task = 0;
@@ -1843,18 +1696,16 @@ static void Get_Menu(uint8_t task)
         search:
             for (;;)
             {
-                MenuID = 0;
-                const __flash struct menuentry *mp = MenuTable;
-                while (mp->main != 0xFF)
+                menuID = MenuTable;
+                while (menuID->main != 0xFF)
                 {
-                    if (mp->main == MenuHigh && mp->sub == MenuLow)
+                    if (menuID->main == MenuHigh && menuID->sub == MenuLow)
                     {
                         // found
-                        MenuJump[MenuID](0);
+                        (void)menuID->func(0);
                         return;
                     }
-                    mp++;
-                    MenuID++;
+                    menuID++;
                 }
                 // MenuEnd
                 if (MenuLow == 0)
