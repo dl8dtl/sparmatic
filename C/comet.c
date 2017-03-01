@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9a5bca02519a 2017/03/01 21:45:36 "Joerg $ */
+/* $Id: comet.c,v d3a1f171c9a9 2017/03/01 21:53:03 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -523,7 +523,7 @@ ISR(PCINT0_vect)
             if (RFLXCT != 0)
                 RFLXCT--;
         }
-        MotTimeOut &= 0b11000000; /* clear motor timeout counter */
+        MotTimeOut &= (TopLimit | BotLimit); /* clear motor timeout counter */
     }
 }
 
@@ -539,7 +539,7 @@ ISR(PCINT1_vect)
 ISR(LCD_vect)
 {
     /* increment motor timeout counter each LCD frame */
-    if ((MotTimeOut & 0x3F) != 0x3F)
+    if ((MotTimeOut & ~(TopLimit | BotLimit)) != ~(TopLimit | BotLimit))
         MotTimeOut++;
 }
 
