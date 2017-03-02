@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v bddabcd37f76 2017/03/02 21:29:19 "Joerg $ */
+/* $Id: comet.c,v 3c9721369744 2017/03/02 21:48:34 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -488,7 +488,7 @@ ISR(TIMER0_COMP_vect)
 /* Reflex coupler pin change interrupt */
 ISR(PCINT0_vect)
 {
-    if (!(PINE & _BV(0)))
+    if (PINE & _BV(0))
     {
         /* RapidShutOff */
         // DebugPort &= ~Debug1;
