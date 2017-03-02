@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v d3a1f171c9a9 2017/03/01 21:53:03 "Joerg $ */
+/* $Id: comet.c,v bddabcd37f76 2017/03/02 21:29:19 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1056,7 +1056,7 @@ void Clear_Screen(void)
     memset(DisplayBuffer1, 0, 40);
 }
 
-void Show_TimerSetBar(uint8_t *set_time)
+void Show_TimerSetBar(uint8_t set_time)
 {
     Clear_Bargraph();
     uint8_t *p;
@@ -1083,7 +1083,7 @@ void Show_TimerSetBar(uint8_t *set_time)
             }
         }
     }
-    uint8_t t = TimerHour2Bin(*set_time);
+    uint8_t t = TimerHour2Bin(set_time);
     PutBargraph(t, 2);
     PutBargraph(t | 0x80, 1);
 }
@@ -2267,7 +2267,7 @@ static bool MenuProg_Com(uint8_t task)
         rv = PutCharacter('?', 2, rv);
         rv = PutCharacter('?', 2, rv);
         PutCharacter('?', 2, rv);
-        Show_TimerSetBar(&BarBase[menu_num & 0x0F]);
+        Show_TimerSetBar(BarBase[menu_num & 0x0F]);
     }
 
     return false;
