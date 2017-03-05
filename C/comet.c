@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 70e59ac1d45b 2017/03/05 22:18:15 "Joerg $ */
+/* $Id: comet.c,v 0b957ed2f1e2 2017/03/05 22:20:41 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1071,15 +1071,21 @@ void Show_TimerSetBar(uint8_t *set_time)
             {
                 // set Barpoint only, if off time is later then on time
                 if (p[0] > p[-1])
+                {
                     PutBargraph(h | 0x80, 3);
-                if (h == TimerHour2Bin(*p++) - 1)
+                    uint8_t h1 = TimerHour2Bin(*p++ - 1) + 1;
+                    while (h1 != h)
+                    {
+                        PutBargraph(h | 0x80, 3);
+                        if (++h >= 24)
+                            break;
+                    }
+                    h = 24; // force next inhouse/offhouse timer
+                }
+                else
                 {
                     p++;
-                    break;
                 }
-                while (h++ < 24)
-                    PutBargraph(h | 0x80, 3);
-                break;
             }
         }
     }
