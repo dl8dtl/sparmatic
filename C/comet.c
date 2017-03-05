@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 0ec9c0b7c532 2017/03/05 22:40:04 "Joerg $ */
+/* $Id: comet.c,v f1197b8427da 2017/03/05 22:49:46 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -938,7 +938,7 @@ void Regulate(void)
 
     if (diff >= 15)
     {
-        FuzzyVal = FuzzAbove;
+        FuzzyVal = FuzzAbove + t3;
         switch (t3)
         {
             case TStatic:
@@ -952,7 +952,7 @@ void Regulate(void)
     }
     else if (diff >= 6)
     {
-        FuzzyVal = FuzzHot;
+        FuzzyVal = FuzzHot + t3;
         switch (t3)
         {
             case TStatic:
@@ -968,7 +968,7 @@ void Regulate(void)
     }
     else if (diff >= 2)
     {
-        FuzzyVal = FuzzWarm;
+        FuzzyVal = FuzzWarm + t3;
         switch (t3)
         {
             case TStatic:
@@ -984,7 +984,7 @@ void Regulate(void)
     }
     else if (diff <= -2)
     {
-        FuzzyVal = FuzzCool;
+        FuzzyVal = FuzzCool + t3;
         switch (t3)
         {
             case TStatic:
@@ -1000,7 +1000,7 @@ void Regulate(void)
     }
     else if (diff <= -6)
     {
-        FuzzyVal = FuzzCold;
+        FuzzyVal = FuzzCold + t3;
         switch (t3)
         {
             case TStatic:
@@ -1016,7 +1016,7 @@ void Regulate(void)
     }
     else if (diff <= -15)
     {
-        FuzzyVal = FuzzBelow;
+        FuzzyVal = FuzzBelow + t3;
         switch (t3)
         {
             case TStatic:
@@ -1031,7 +1031,7 @@ void Regulate(void)
     else /* -1 ... 1 */
     {
         // nothing to do now
-        FuzzyVal = FuzzOK;
+        FuzzyVal = FuzzOK + t3;
         RegWay = 0;
         return;
     }
