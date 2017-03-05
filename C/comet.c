@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 0b957ed2f1e2 2017/03/05 22:20:41 "Joerg $ */
+/* $Id: comet.c,v 0ec9c0b7c532 2017/03/05 22:40:04 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1339,7 +1339,7 @@ void Adaptation(void)
         if (delta >= 10)
         {
             // execute only once if the current rises over threshold
-            if ((DisplayBuffer1[6] & 1) != 0)
+            if ((DisplayBuffer1[6] & 1) == 0)
             {
                 Position = 0;
                 // set bargraph point 2, touch current measured
