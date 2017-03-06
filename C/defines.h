@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v a9973f54ad0f 2017/03/06 21:56:25 "Joerg $ */
+/* $Id: defines.h,v ff998da6b532 2017/03/06 22:17:21 "Joerg $ */
 
 #include <stdint.h>
 
@@ -54,9 +54,9 @@
 
 /* Status0 Flagregister */
 #define Status0	GPIOR0
-#define MotOn	_BV(0)
-#define MotDir	_BV(1)
-#define MotRun	_BV(2)
+#define MotOn	_BV(0)  // MotorControl() shall take action
+#define MotDir	_BV(1)  // Close valve
+#define MotRun	_BV(2)  // Motor hardware is running
 #define Adapt	_BV(3)
 #define NewButton	_BV(4)
 #define MenuUpDn	_BV(5)
