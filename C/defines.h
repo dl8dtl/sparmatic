@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v 22169c7737d9 2017/02/26 22:38:02 Joerg $ */
+/* $Id: defines.h,v a9973f54ad0f 2017/03/06 21:56:25 "Joerg $ */
 
 #include <stdint.h>
 
@@ -90,7 +90,7 @@
 #define TRise			0x01
 #define TFall			0x02
 
-#define FW_Version		002
+#define FW_Version		003
 
 
 /* Symbol Definition */
