@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v f1197b8427da 2017/03/05 22:49:46 "Joerg $ */
+/* $Id: comet.c,v ff5b05a0431f 2017/03/06 21:57:08 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -539,7 +539,7 @@ ISR(PCINT1_vect)
 ISR(LCD_vect)
 {
     /* increment motor timeout counter each LCD frame */
-    if ((MotTimeOut & ~(TopLimit | BotLimit)) != ~(TopLimit | BotLimit))
+    if ((MotTimeOut & ~(TopLimit | BotLimit)) != (uint8_t)~(TopLimit | BotLimit))
         MotTimeOut++;
 }
 
