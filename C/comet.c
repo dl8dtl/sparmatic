@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 1f19ab036ff6 2017/03/08 21:19:50 "Joerg $ */
+/* $Id: comet.c,v cfed6a108a05 2017/03/08 22:18:40 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1333,10 +1333,8 @@ void Adaptation(void)
             DisplayBuffer1[11] |= 1;
             DisplayBuffer2[11] |= 1;
         }
-        int8_t delta = MotorCurrent - FreeMotorCurrent;
-        if (delta < 0) delta = 0;
-            // threshold current over freewheeling current, to detect valve touch
-        if (delta >= 10)
+        // threshold current over freewheeling current, to detect valve touch
+        if (MotorCurrent >= FreeMotorCurrent + 10)
         {
             // execute only once if the current rises over threshold
             if ((DisplayBuffer1[6] & 1) == 0)
@@ -1346,7 +1344,7 @@ void Adaptation(void)
                 DisplayBuffer1[6] |= 1;
                 DisplayBuffer2[6] |= 1;
             }
-            RFLXCT = 10; // keep Reflex counter well above 0
+            RFLXCT = 16; // keep Reflex counter well above 0
         }
     }
     if (Status0 & MotRun)
