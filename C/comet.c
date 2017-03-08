@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ff5b05a0431f 2017/03/06 21:57:08 "Joerg $ */
+/* $Id: comet.c,v 1f19ab036ff6 2017/03/08 21:19:50 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1424,8 +1424,9 @@ void Adaptation(void)
 
 void MotorControl(void)
 {
+    uint8_t tmo = MotTimeOut & ~(BotLimit | TopLimit);
     // timeout value to completely shut down motor hardware, if lower, execute motor control
-    if ((MotTimeOut & ~(BotLimit | TopLimit)) >= 30)
+    if (tmo >= 30)
     {
         Status0 &= ~MotRun;
         LightSensPort &= ~LightSens_LED; // switch off reflex sensor
@@ -1438,20 +1439,20 @@ void MotorControl(void)
     if (!(Status0 & MotOn))
         return;
     // timeout value to shut down motor, if lower, execute motor control
-    if ((MotTimeOut & ~(BotLimit | TopLimit)) >= 10)
+    if (tmo >= 10)
     {
         // DebugPort |= Debug2;
         bool botlimit = false;
         if (Status0 & MotDir)
         {
-            MotTimeOut = (MotTimeOut & ~(BotLimit | TopLimit)) | BotLimit;
+            MotTimeOut = tmo | BotLimit;
             botlimit = true;
         }
         else
         {
-            MotTimeOut = (MotTimeOut & ~(BotLimit | TopLimit)) | TopLimit;
+            MotTimeOut = tmo | TopLimit;
         }
-        if (botlimit && (Status0 & Adapt) == 0)
+        if (botlimit && (Status0 & Adapt) != 0)
         {
             // if valve is fully closed, clear position counter
             Position = 0;
