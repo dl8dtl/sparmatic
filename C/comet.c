@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v cfed6a108a05 2017/03/08 22:18:40 "Joerg $ */
+/* $Id: comet.c,v eeb1f9bfa09c 2017/03/08 22:57:17 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1406,6 +1406,7 @@ void Adaptation(void)
             DisplayBuffer1[6] &= ~1;
             DisplayBuffer2[6] &= ~1;
             ValveTop = Position - 80; // subtact margin to full open position
+            Position = 0;
             ADCPrescaler = 3;
             UserDisplay = 0;
             DisplayCT = 0;
