@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v eeb1f9bfa09c 2017/03/08 22:57:17 "Joerg $ */
+/* $Id: comet.c,v 9977eb803177 2017/03/09 20:54:05 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2916,7 +2916,13 @@ uint8_t CalcDayOfWeek(void)
     d += y / 4;
     d += c / 4;
     d += 5 * c;
-    TOD.WDays = d % 7;
+    while (d > 7)
+        d -= 7;
+    if (d == 0)
+        d = 6;
+    else
+        d -= 1;
+    TOD.WDays = d;
 
     return TOD.WDays;
 }
