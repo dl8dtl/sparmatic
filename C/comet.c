@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v d51ae94299b2 2017/03/09 21:42:23 "Joerg $ */
+/* $Id: comet.c,v 99352a9b8b94 2017/03/09 22:28:21 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -889,7 +889,7 @@ void OpenValve(uint8_t amount)
         // do not store new motor position, if motor is running
         return;
     Status0 |= MotOn;
-    MotTimeOut &= ~(TopLimit | BotLimit);
+    MotTimeOut &= (TopLimit | BotLimit);
     RFLXCT = amount;
 }
 
@@ -914,7 +914,7 @@ void CloseValve(uint8_t amount)
         // do not store new motor position, if motor is running
         return;
     Status0 |= MotOn;
-    MotTimeOut &= ~(TopLimit | BotLimit);
+    MotTimeOut &= (TopLimit | BotLimit);
     RFLXCT = amount;
 }
 
