@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9977eb803177 2017/03/09 20:54:05 "Joerg $ */
+/* $Id: comet.c,v be3497e22320 2017/03/09 21:41:36 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1451,7 +1451,7 @@ void MotorControl(void)
         {
             MotTimeOut = tmo | TopLimit;
         }
-        if (botlimit && (Status0 & Adapt) != 0)
+        if (botlimit && (Status0 & Adapt) == 0)
         {
             // if valve is fully closed, clear position counter
             Position = 0;
