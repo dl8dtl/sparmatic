@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v be3497e22320 2017/03/09 21:41:36 "Joerg $ */
+/* $Id: comet.c,v d51ae94299b2 2017/03/09 21:42:23 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2711,7 +2711,7 @@ bool Menu_ZeitSub3(uint8_t task)
     PutCharacter('?', 2, rv);
     DivDez(TOD.Months + 1, b); // add 1 to month value to display 1...12
     rv = PutCharacter(b[1], 3, 2);
-    PutCharacter(b[0], 1, rv);
+    PutCharacter(b[0], 3, rv);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
