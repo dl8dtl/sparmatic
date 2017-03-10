@@ -7,11 +7,12 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 99352a9b8b94 2017/03/09 22:28:21 "Joerg $ */
+/* $Id: comet.c,v c95d9375c46f 2017/03/10 22:29:20 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
@@ -21,6 +22,8 @@
 #include <util/delay.h>
 
 #include "defines.h"
+
+#define DEGREE "@"  // used as degree symbol
 
 /* These variables use hardwired registers in assembly version */
 uint8_t MotPWMCT;        /* r4 */
@@ -317,7 +320,7 @@ const __flash struct menuentry MenuTable[] =
 struct eedata eemem EEMEM;
 
 static void Clear_Screen(void);
-static uint8_t PutCharacter(char c, uint8_t buffno, uint8_t pos);
+static void PutString(const char *s);
 static void ReadButtons(void);
 static void Adaptation(void);
 static void Measure_Motor_Current(void);
@@ -395,7 +398,7 @@ const __flash uint16_t LCD_Character_Table[] =
     0b0000000011000000,  // :  used as '-'
     0b0010001000000000,  // ;
     0b0000110000000000,  // <
-    0b0000000011001000,  // =
+    0b0001001011000000,  // =  used as '+'
     0b0001000100000000,  // >
     0b0000000000000000,  // ?  used as 'SPACE'
     0b0000000011100011,  // @  used as '°' character
@@ -497,11 +500,7 @@ ISR(PCINT0_vect)
         Store_Time();
         Clear_Screen();
 
-        uint8_t rv = PutCharacter('O', 3, 0);
-        rv = PutCharacter('F', 3, rv);
-        rv = PutCharacter('F', 3, rv);
-        rv = PutCharacter('?', 3, rv);
-        Copy_DisplayBuffers();
+        PutString("OFF ");
 
         set_sleep_mode(SLEEP_MODE_PWR_SAVE);
         for (;;)
@@ -1108,26 +1107,16 @@ void Show_Current_Temperature(void)
             return;
         if ((DisplayCT & 0b000000111) != 0)
             return;
-        char b[4];
-        DivHL(TempInt, b);
-        uint8_t rv = PutCharacter(b[2], 3, 0);
-        rv = PutCharacter(b[1], 3, rv);
-        rv = PutCharacter(b[0], 3, rv);
-        PutCharacter('@', 3, rv); // degree sign
+        char b[5];
+        sprintf(b, "%3d" DEGREE, TempInt);
+        PutString(b);
     }
     else if (UserDisplay == 5)
     {
         // Show Set Temp
-        char b[4];
-        DivHL(SetTemp, b);
-        uint8_t rv = PutCharacter(b[2], 1, 0);
-        rv = PutCharacter(b[1], 1, rv);
-        rv = PutCharacter(b[0], 1, rv);
-        PutCharacter('@', 1, rv); // degree sign
-        rv = PutCharacter('?', 2, 0);
-        rv = PutCharacter('?', 2, rv);
-        rv = PutCharacter('?', 2, rv);
-        PutCharacter('?', 2, rv);
+        char b[10];
+        sprintf(b, "%3d" DEGREE "\n    ", SetTemp);
+        PutString(b);
         // clear point between segment 1 and 2
         DisplayBuffer1[7] &= ~0x80;
         DisplayBuffer2[7] &= ~0x80;
@@ -1165,16 +1154,9 @@ void Show_Current_Time(void)
     DisplayBuffer1[7] &= ~0x80;
     DisplayBuffer2[7] &= ~0x80;
 
-    char b[3];
-    DivDez(TOD.Hours, b);
-    if (b[1] == '0')
-        // clear leading zero
-        b[1] = '?'; // SPACE
-    PutCharacter(b[1], 3, 0);
-    PutCharacter(b[0], 3, 1);
-    DivDez(TOD.Minutes, b);
-    PutCharacter(b[1], 3, 2);
-    PutCharacter(b[0], 3, 3);
+    char b[5];
+    sprintf(b, "%2d:%02d", TOD.Hours, TOD.Minutes);
+    PutString(b);
     // set colon between segment 1 and 2
     DisplayBuffer1[16] |= 0x80;
 }
@@ -1193,15 +1175,42 @@ static void Get_Character(uint8_t *bp, char c, uint8_t pos)
     }
 }
 
-uint8_t PutCharacter(char c, uint8_t buffno, uint8_t pos)
+static char MapChar(char c)
 {
-    if (buffno & 1)
-        Get_Character(DisplayBuffer1, c, pos);
-    if (buffno & 2)
-        Get_Character(DisplayBuffer2, c, pos);
-
-    return pos + 1;
+    if (c == ' ') return '?';
+    if (c == '+') return '=';
+    if (c == '-') return ':';
+    return c;
 }
+
+
+void PutString(const char *s)
+{
+    // two lines given?
+    if (strchr(s, '\n'))
+    {
+        // yes: fill both lines into different display buffers
+        uint8_t pos = 0;
+        const char *cp;
+        for (cp = s; *cp != '\n'; cp++, pos++)
+            Get_Character(DisplayBuffer1, MapChar(*cp), pos);
+        cp++;
+        pos = 0;
+        for (; *cp != 0; cp++, pos++)
+            Get_Character(DisplayBuffer2, MapChar(*cp), pos);
+    }
+    else
+    {
+        // no: fill both buffers with same contents
+        uint8_t pos = 0;
+        for (const char *cp = s; *cp != '\n'; cp++, pos++)
+        {
+            Get_Character(DisplayBuffer1, MapChar(*cp), pos);
+            Get_Character(DisplayBuffer2, MapChar(*cp), pos);
+        }
+    }
+}
+
 
 void Copy_DisplayBuffers(void)
 {
@@ -1351,8 +1360,6 @@ void Adaptation(void)
         return;
     switch (AdaptStep)
     {
-        uint8_t rv;
-
         case 0:
             // AdpOpenValve
             Status0 &= ~MotDir;
@@ -1360,14 +1367,7 @@ void Adaptation(void)
             MotTimeOut = 0;
             AdaptStep++;
             // flashing arrow "moving" left
-            rv = PutCharacter('<', 1, 0);
-            rv = PutCharacter('?', 1, rv);
-            rv = PutCharacter('<', 1, rv);
-            PutCharacter('?', 1, rv);
-            rv = PutCharacter('?', 2, 0);
-            rv = PutCharacter('<', 2, rv);
-            rv = PutCharacter('?', 2, rv);
-            PutCharacter('<', 2, rv);
+            PutString("< < \n < <");
             // asm code sets only RFLXCTH (why?)
             RFLXCT = 0x1000;
             break;
@@ -1380,10 +1380,7 @@ void Adaptation(void)
                 if (Buttons == OK_Button)
                 {
                     AdaptStep = 4;
-                    rv = PutCharacter('A', 3, 0);
-                    rv = PutCharacter('D', 3, rv);
-                    rv = PutCharacter('A', 3, rv);
-                    PutCharacter('P', 3, rv);
+                    PutString("ADAP");
                     Position = 0;
                 }
             }
@@ -1509,14 +1506,7 @@ void MotorControl(void)
     // in adaptation mode, increase adaptation step
     if (AdaptStep == 1)
     {
-        uint8_t rv = PutCharacter('I', 1, 0);
-        rv = PutCharacter('N', 1, rv);
-        rv = PutCharacter('S', 1, rv);
-        PutCharacter('T', 1, rv);
-        rv = PutCharacter('?', 2, 0);
-        rv = PutCharacter('O', 2, rv);
-        rv = PutCharacter('K', 2, rv);
-        PutCharacter('?', 2, rv);
+        PutString("INST\n OK ");
     }
     AdaptStep++;
 }
@@ -1862,10 +1852,7 @@ void User_Action(void)
 
 bool Menu_Adapt(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('A', 3, 0);
-    rv = PutCharacter('D', 3, rv);
-    rv = PutCharacter('A', 3, rv);
-    PutCharacter('P', 3, rv);
+    PutString("ADAP");
 
     return false;
 }
@@ -1880,191 +1867,117 @@ bool Menu_AdaptSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('F', 1, 0);
-    rv = PutCharacter('U', 1, rv);
-    rv = PutCharacter('Z', 1, rv);
-    PutCharacter('Z', 1, rv);
-
-    char b[3];
-    DivDez(FuzzyVal, b);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter(b[1], 2, rv);
-    PutCharacter(b[0], 2, rv);
+    char b[10];
+    sprintf(b, "FUZZ\n%4d", FuzzyVal);
+    PutString(b);
 
     return false;
 }
 
 bool Menu_Dbg_2(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('P', 1, 0);
-    rv = PutCharacter('O', 1, rv);
-    rv = PutCharacter('S', 1, rv);
-    PutCharacter('I', 1, rv);
-
-    char b[4];
-    DivHL(Position, b);
-    rv = PutCharacter(b[3], 2, 0);
-    rv = PutCharacter(b[2], 2, rv);
-    rv = PutCharacter(b[1], 2, rv);
-    PutCharacter(b[0], 2, rv);
+    char b[10];
+    sprintf(b, "POSI\n%4d", Position);
+    PutString(b);
 
     return false;
 }
 
 bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('V', 1, 0);
-    rv = PutCharacter('T', 1, rv);
-    rv = PutCharacter('O', 1, rv);
-    PutCharacter('P', 1, rv);
-
-    char b[4];
-    DivHL(ValveTop, b);
-    rv = PutCharacter(b[3], 2, 0);
-    rv = PutCharacter(b[2], 2, rv);
-    rv = PutCharacter(b[1], 2, rv);
-    PutCharacter(b[0], 2, rv);
+    char b[10];
+    sprintf(b, "VTOP\n%4d", ValveTop);
+    PutString(b);
 
     return false;
 }
 
 bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('R', 1, 0);
-    rv = PutCharacter('W', 1, rv);
-    rv = PutCharacter('A', 1, rv);
-    PutCharacter('Y', 1, rv);
-
-    char b[3];
-    DivDez(RegWay, b);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter(b[2], 2, rv);
-    rv = PutCharacter(b[1], 2, rv);
-    PutCharacter(b[0], 2, rv);
+    char b[10];
+    sprintf(b, "RWAY\n%4d", RegWay);
+    PutString(b);
 
     return false;
 }
 
 bool Menu_Dbg_FW(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('F', 1, 0);
-    rv = PutCharacter('I', 1, rv);
-    rv = PutCharacter('R', 1, rv);
-    PutCharacter('M', 1, rv);
-
-    char b[3];
-    DivDez(FW_Version, b);
-    rv = PutCharacter('V', 2, 0);
-    rv = PutCharacter(b[2], 2, rv);
-    rv = PutCharacter(b[1], 2, rv);
-    PutCharacter(b[0], 2, rv);
+    char b[10];
+    sprintf(b, "FIRM\nV%3d", FW_Version);
+    PutString(b);
 
     return false;
 }
 
 bool Menu_Debug(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('D', 3, 0);
-    rv = PutCharacter('B', 3, rv);
-    rv = PutCharacter('U', 3, rv);
-    PutCharacter('G', 3, rv);
+    PutString("DBUG");
 
     return false;
 }
 
 bool Menu_Fens(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('F', 3, 0);
-    rv = PutCharacter('E', 3, rv);
-    rv = PutCharacter('N', 3, rv);
-    PutCharacter('S', 3, rv);
+    PutString("FENS");
 
     return false;
 }
 
 bool Menu_FensSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('H', 3, 0);
-    rv = PutCharacter('O', 3, rv);
-    rv = PutCharacter('C', 3, rv);
-    PutCharacter('H', 3, rv);
+    PutString("HOCH");
 
     return false;
 }
 
 bool Menu_FensSub11(uint8_t task __attribute__((unused)))
 {
-    char b[3];
-    DivDez(MenuLow & 0x0F, b);
-    uint8_t rv = PutCharacter(b[0], 3, 0);
-    rv = PutCharacter('0', 3, rv);
-    rv = PutCharacter('?', 3, rv);
-    PutCharacter('M', 3, rv);
+    char b[5];
+    sprintf(b, "%d0 M", (MenuLow & 0x0F));
+    PutString(b);
 
     return false;
 }
 
 bool Menu_FensSub2(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('M', 3, 0);
-    rv = PutCharacter('I', 3, rv);
-    rv = PutCharacter('T', 3, rv);
-    PutCharacter('T', 3, rv);
+    PutString("MITT");
 
     return false;
 }
 
 bool Menu_FensSub3(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('N', 3, 0);
-    rv = PutCharacter('I', 3, rv);
-    rv = PutCharacter('E', 3, rv);
-    PutCharacter('D', 3, rv);
+    PutString("NIED");
 
     return false;
 }
 
 bool Menu_Inst(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('I', 3, 0);
-    rv = PutCharacter('N', 3, rv);
-    rv = PutCharacter('S', 3, rv);
-    PutCharacter('T', 3, rv);
+    PutString("INST");
 
     return false;
 }
 
 bool Menu_InstSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('<', 3, 0);
-    rv = PutCharacter('<', 3, rv);
-    rv = PutCharacter('<', 3, rv);
-    PutCharacter('<', 3, rv);
+    PutString("<<<<");
 
     return false;
 }
 
 bool Menu_Mode(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('M', 3, 0);
-    rv = PutCharacter('O', 3, rv);
-    rv = PutCharacter('D', 3, rv);
-    PutCharacter('E', 3, rv);
+    PutString("MODE");
 
     return false;
 }
 
 bool Menu_ModeSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('M', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('N', 1, rv);
-    PutCharacter('U', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("MANU\n    ");
 
     return false;
 }
@@ -2080,14 +1993,7 @@ bool Menu_ModeSub11(uint8_t task __attribute__((unused)))
 
 bool Menu_ModeSub2(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('A', 1, 0);
-    rv = PutCharacter('U', 1, rv);
-    rv = PutCharacter('T', 1, rv);
-    PutCharacter('O', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("AUTO\n    ");
 
     return false;
 }
@@ -2103,20 +2009,14 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
 
 bool Menu_Offs(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('O', 3, 0);
-    rv = PutCharacter('F', 3, rv);
-    rv = PutCharacter('F', 3, rv);
-    PutCharacter('S', 3, rv);
+    PutString("OFFS");
 
     return false;
 }
 
 bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('+', 3, 0);
-    rv = PutCharacter('0', 3, rv);
-    rv = PutCharacter('@', 3, rv);
-    PutCharacter('?', 3, rv);
+    PutString("+0" DEGREE " ");
 
     return false;
 }
@@ -2124,24 +2024,14 @@ bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Prog(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('P', 3, 0);
-    rv = PutCharacter('R', 3, rv);
-    rv = PutCharacter('O', 3, rv);
-    PutCharacter('G', 3, rv);
+    PutString("PROG");
 
     return false;
 }
 
 bool Menu_ProgSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('1', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG1\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
 
@@ -2250,29 +2140,15 @@ static bool MenuProg_Com(uint8_t task)
     if (y == 255)
     {
         // TimerInactive
-        uint8_t rv = PutCharacter(':', 1, 0);
-        rv = PutCharacter(':', 1, rv);
-        rv = PutCharacter(':', 1, rv);
-        PutCharacter(':', 1, rv);
-        rv = PutCharacter('?', 2, 0);
-        rv = PutCharacter('?', 2, rv);
-        rv = PutCharacter('?', 2, rv);
-        PutCharacter('?', 2, rv);
+        PutString("::::\n    ");
     }
     else
     {
-        char out[3];
-        DivTimer2HourTenMin(y, out);
-        if (out[2] == '0')
-            out[2] = '?'; // clear leading zero
-        uint8_t rv = PutCharacter(out[2], 1, 0);
-        rv = PutCharacter(out[1], 1, rv);
-        rv = PutCharacter(out[0], 1, rv);
-        PutCharacter('0', 1, rv);
-        rv = PutCharacter('?', 2, 0);
-        rv = PutCharacter('?', 2, rv);
-        rv = PutCharacter('?', 2, rv);
-        PutCharacter('?', 2, rv);
+        div_t d;
+        d = div((int)y, 6);
+        char b[10];
+        sprintf(b, "%2d:%d0\n    ", d.quot, d.rem);
+        PutString(b);
         Show_TimerSetBar(&BarBase[menu_num & 0x0F]);
     }
 
@@ -2314,14 +2190,7 @@ bool Menu_ProgSub14(uint8_t task)
 
 bool Menu_ProgSub2(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('2', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG2\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Di_SET, 1);
 
@@ -2330,14 +2199,7 @@ bool Menu_ProgSub2(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub3(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('3', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG3\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Mi_SET, 1);
 
@@ -2346,14 +2208,7 @@ bool Menu_ProgSub3(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub4(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('4', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG4\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Do_SET, 1);
 
@@ -2362,14 +2217,7 @@ bool Menu_ProgSub4(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub5(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('5', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG5\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Fr_SET, 1);
 
@@ -2378,14 +2226,7 @@ bool Menu_ProgSub5(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub6(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('6', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG6\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Sa_SET, 1);
 
@@ -2394,14 +2235,7 @@ bool Menu_ProgSub6(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub7(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('A', 1, rv);
-    rv = PutCharacter('G', 1, rv);
-    PutCharacter('7', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("TAG7\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_So_SET, 1);
 
@@ -2410,14 +2244,7 @@ bool Menu_ProgSub7(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub8(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('1', 1, rv);
-    rv = PutCharacter(':', 1, rv);
-    PutCharacter('5', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("T1:5\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2430,14 +2257,7 @@ bool Menu_ProgSub8(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub9(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('1', 1, rv);
-    rv = PutCharacter(':', 1, rv);
-    PutCharacter('6', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("T1:6\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2451,14 +2271,7 @@ bool Menu_ProgSub9(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSubA(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 1, 0);
-    rv = PutCharacter('1', 1, rv);
-    rv = PutCharacter(':', 1, rv);
-    PutCharacter('7', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    PutString("T1:7\n    ");
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2473,20 +2286,14 @@ bool Menu_ProgSubA(uint8_t task __attribute__((unused)))
 
 bool Menu_Reset(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('R', 3, 0);
-    rv = PutCharacter('E', 3, rv);
-    rv = PutCharacter('S', 3, rv);
-    PutCharacter('?', 3, rv);
+    PutString("RES ");
 
     return false;
 }
 
 bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('?', 3, 0);
-    rv = PutCharacter('O', 3, rv);
-    rv = PutCharacter('K', 3, rv);
-    PutCharacter('?', 3, rv);
+    PutString(" OK ");
 
     return false;
 }
@@ -2494,10 +2301,7 @@ bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Temp(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('T', 3, 0);
-    rv = PutCharacter('E', 3, rv);
-    rv = PutCharacter('M', 3, rv);
-    PutCharacter('P', 3, rv);
+    PutString("TEMP");
 
     return false;
 }
@@ -2532,17 +2336,9 @@ bool Menu_TempSub1(uint8_t task)
     }
 
     // MTS11
-    char b[4];
-    DivHL(InHouseTemp, b);
-    uint8_t rv = PutCharacter(b[2], 1, 0);
-    rv = PutCharacter(b[1], 1, rv);
-    rv = PutCharacter(b[0], 1, rv);
-    PutCharacter('@', 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
-
+    char b[10];
+    sprintf(b, "%3d" DEGREE "\n    ", InHouseTemp);
+    PutString(b);
     PutSymbol(LCD_InHouse_SET, 3);
 
     return false;
@@ -2550,30 +2346,21 @@ bool Menu_TempSub1(uint8_t task)
 
 bool Menu_Urla(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('U', 3, 0);
-    rv = PutCharacter('R', 3, rv);
-    rv = PutCharacter('L', 3, rv);
-    PutCharacter('A', 3, rv);
+    PutString("URLA");
 
     return false;
 }
 
 bool Menu_UrlaSub1(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('D', 3, 0);
-    rv = PutCharacter('A', 3, rv);
-    rv = PutCharacter('T', 3, rv);
-    PutCharacter('E', 3, rv);
+    PutString("DATE");
 
     return false;
 }
 
-bool Menu_Zeit (uint8_t task __attribute__((unused)))
+bool Menu_Zeit(uint8_t task __attribute__((unused)))
 {
-    uint8_t rv = PutCharacter('Z', 3, 0);
-    rv = PutCharacter('E', 3, rv);
-    rv = PutCharacter('I', 3, rv);
-    PutCharacter('T', 3, rv);
+    PutString("ZEIT");
 
     return false;
 }
@@ -2608,16 +2395,9 @@ bool Menu_ZeitSub1(uint8_t task)
 
         return true;
     }
-    uint8_t rv = PutCharacter('2', 1, 0);
-    rv = PutCharacter('0', 1, rv);
-    char b[3];
-    DivDez(TOD.Years, b);
-    rv = PutCharacter(b[1], 1, rv);
-    PutCharacter(b[0], 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    rv = PutCharacter('?', 2, rv);
-    rv = PutCharacter('?', 2, rv);
-    PutCharacter('?', 2, rv);
+    char b[10];
+    sprintf(b, "20%02d\n    ", TOD.Years);
+    PutString(b);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2656,16 +2436,10 @@ bool Menu_ZeitSub2(uint8_t task)
 
         return true;
     }
-    char b[3];
-    DivDez(TOD.Days + 1, b);
-    uint8_t rv = PutCharacter(b[1], 3, 0);
-    PutCharacter(b[0], 3, rv);
+    char b[10];
+    sprintf(b, "%02d%02d\n%02d  ", TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
+    PutString(b);
     SetPoint();
-    rv = PutCharacter('?', 2, 2);
-    PutCharacter('?', 2, rv);
-    DivDez(TOD.Months + 1, b); // add 1 to month value to display 1...12
-    rv = PutCharacter(b[1], 1, 2);
-    PutCharacter(b[0], 1, rv);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2703,15 +2477,9 @@ bool Menu_ZeitSub3(uint8_t task)
 
         return true;
     }
-    char b[3];
-    DivDez(TOD.Days + 1, b); // add 1 to days value to display 1..31
-    uint8_t rv = PutCharacter(b[1], 1, 0);
-    PutCharacter(b[0], 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    PutCharacter('?', 2, rv);
-    DivDez(TOD.Months + 1, b); // add 1 to month value to display 1...12
-    rv = PutCharacter(b[1], 3, 2);
-    PutCharacter(b[0], 3, rv);
+    char b[10];
+    sprintf(b, "%02d%02d\n  %02d", TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
+    PutString(b);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2750,18 +2518,10 @@ bool Menu_ZeitSub4(uint8_t task)
 
         return true;
     }
-    char b[3];
-    DivDez(TOD.Hours, b);
-    if (b[1] == '0')
-        b[1] = '?';
-    uint8_t rv = PutCharacter(b[1], 1, 0);
-    PutCharacter(b[0], 1, rv);
-    rv = PutCharacter('?', 2, 0);
-    PutCharacter('?', 2, rv);
+    char b[10];
+    sprintf(b, "%2d%02d\n  %02d", TOD.Hours, TOD.Minutes, TOD.Minutes);
+    PutString(b);
     SetColon();
-    DivDez(TOD.Minutes, b);
-    rv = PutCharacter(b[1], 3, 2);
-    PutCharacter(b[0], 3, rv);
 
     return false;
 }
@@ -2796,17 +2556,9 @@ bool Menu_ZeitSub5(uint8_t task)
 
         return true;
     }
-    char b[3];
-    DivDez(TOD.Hours, b);
-    if (b[1] == '0')
-        b[1] = '?';
-    uint8_t rv = PutCharacter(b[1], 3, 0);
-    PutCharacter(b[0], 3, rv);
-    DivDez(TOD.Minutes, b);
-    rv = PutCharacter(b[1], 1, 2);
-    PutCharacter(b[0], 1, rv);
-    rv = PutCharacter('?', 2, 2);
-    PutCharacter('?', 2, rv);
+    char b[10];
+    sprintf(b, "%2d%02d\n%2d  ", TOD.Hours, TOD.Minutes, TOD.Hours);
+    PutString(b);
     SetColon();
 
     return false;
