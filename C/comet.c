@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v c95d9375c46f 2017/03/10 22:29:20 "Joerg $ */
+/* $Id: comet.c,v 4d694219afd2 2017/03/10 22:30:53 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -818,42 +818,6 @@ void DivHex(uint8_t b, uint8_t res[2])
         res[1] = 'A' + (i - 10);
     else
         res[1] = '0' + i;
-}
-
-/* change two byte of binary (High/Low) format to 4 bytes ASCII DEC
- * format, used for LCD */
-void DivHL(int in, char out[4])
-{
-    div_t d;
-    d = div(in, 10);
-    out[0] = d.rem + '0';
-    d = div(d.quot, 10);
-    out[1] = d.rem + '0';
-    d = div(d.quot, 10);
-    out[2] = d.rem + '0';
-    out[3] = d.quot + '0';
-}
-
-/* Teilt 8_Bit Wert in 3-stellige Dezimalzahl */
-void DivDez(uint8_t in, char out[3])
-{
-    div_t d;
-    d = div((int)in, 10);
-    out[0] = d.rem + '0';
-    d = div(d.quot, 10);
-    out[1] = d.rem + '0';
-    out[2] = d.quot + '0';
-}
-
-/* divides Timer value 0...143 to 3 digits for Hours and ten minutes */
-void DivTimer2HourTenMin(uint8_t in, char out[3])
-{
-    div_t d;
-    d = div((int)in, 6);
-    out[0] = d.rem + '0';
-    d = div(d.quot, 10);
-    out[1] = d.rem + '0';
-    out[2] = d.quot + '0';
 }
 
 uint8_t TimerHour2Bin(uint8_t i)
