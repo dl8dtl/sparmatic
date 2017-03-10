@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ffcb281e48dc 2017/03/10 22:32:33 "Joerg $ */
+/* $Id: comet.c,v 8090a6299eb4 2017/03/10 22:34:15 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -802,22 +802,6 @@ static void Calc_Temperature(void)
     if (!(Status0 & Adapt))
         Regulate();
     Status2 |= TX_SSPI;
-}
-
-/* change one byte of binary format to 2 bytes ASCII HEX format, used
- * for LCD */
-void DivHex(uint8_t b, uint8_t res[2])
-{
-    uint8_t i = b & 0x0F;
-    if (i > 9)
-        res[0] = 'A' + (i - 10);
-    else
-        res[0] = '0' + i;
-    i = b >> 4;
-    if (i > 9)
-        res[1] = 'A' + (i - 10);
-    else
-        res[1] = '0' + i;
 }
 
 /* --- From Regulation.inc --------------------------------------- */
