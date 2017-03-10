@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 4d694219afd2 2017/03/10 22:30:53 "Joerg $ */
+/* $Id: comet.c,v ffcb281e48dc 2017/03/10 22:32:33 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -820,11 +820,6 @@ void DivHex(uint8_t b, uint8_t res[2])
         res[1] = '0' + i;
 }
 
-uint8_t TimerHour2Bin(uint8_t i)
-{
-    return i / 6;
-}
-
 /* --- From Regulation.inc --------------------------------------- */
 
 void OpenValve(uint8_t amount)
@@ -1027,7 +1022,7 @@ void Show_TimerSetBar(uint8_t *set_time)
     // number of inhouse/offhouse timers
     for (i = 0, p = BarBase; i < 4; i++)
     {
-        uint8_t hr = TimerHour2Bin(*p++);
+        uint8_t hr = *p++ / 6;
         for (uint8_t h = 0; h < 24; h++)
         {
             if (h == hr)
@@ -1036,7 +1031,7 @@ void Show_TimerSetBar(uint8_t *set_time)
                 if (p[0] > p[-1])
                 {
                     PutBargraph(h | 0x80, 3);
-                    uint8_t h1 = TimerHour2Bin(*p++ - 1) + 1;
+                    uint8_t h1 = *p++ - 1 / 6 + 1;
                     while (h1 != h)
                     {
                         PutBargraph(h | 0x80, 3);
@@ -1052,7 +1047,7 @@ void Show_TimerSetBar(uint8_t *set_time)
             }
         }
     }
-    uint8_t t = TimerHour2Bin(*set_time);
+    uint8_t t = *set_time / 6;
     PutBargraph(t, 2);
     PutBargraph(t | 0x80, 1);
 }
