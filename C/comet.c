@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9d1bb6b8bc07 2017/03/11 12:59:26 "Joerg $ */
+/* $Id: comet.c,v 22bbe0279e35 2017/03/11 13:12:12 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1055,12 +1055,12 @@ void Show_Current_Temperature(void)
             return;
         if ((DisplayCT & 0b000000111) != 0)
             return;
-        PutFormatted("%3d" DEGREE, TempInt);
+        PutFormatted(FSTR("%3d" DEGREE), TempInt);
     }
     else if (UserDisplay == 5)
     {
         // Show Set Temp
-        PutFormatted("%3d" DEGREE "\n    ", SetTemp);
+        PutFormatted(FSTR("%3d" DEGREE "\n    "), SetTemp);
         // clear point between segment 1 and 2
         DisplayBuffer1[7] &= ~0x80;
         DisplayBuffer2[7] &= ~0x80;
@@ -1098,7 +1098,7 @@ void Show_Current_Time(void)
     DisplayBuffer1[7] &= ~0x80;
     DisplayBuffer2[7] &= ~0x80;
 
-    PutFormatted("%2d:%02d", TOD.Hours, TOD.Minutes);
+    PutFormatted(FSTR("%2d:%02d"), TOD.Hours, TOD.Minutes);
     // set colon between segment 1 and 2
     DisplayBuffer1[16] |= 0x80;
 }
@@ -1841,35 +1841,35 @@ bool Menu_AdaptSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_1(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("FUZZ\n%4d", FuzzyVal);
+    PutFormatted(FSTR("FUZZ\n%4d"), FuzzyVal);
 
     return false;
 }
 
 bool Menu_Dbg_2(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("POSI\n%4d", Position);
+    PutFormatted(FSTR("POSI\n%4d"), Position);
 
     return false;
 }
 
 bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("VTOP\n%4d", ValveTop);
+    PutFormatted(FSTR("VTOP\n%4d"), ValveTop);
 
     return false;
 }
 
 bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("RWAY\n%4d", RegWay);
+    PutFormatted(FSTR("RWAY\n%4d"), RegWay);
 
     return false;
 }
 
 bool Menu_Dbg_FW(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("FIRM\nV%3d", FW_Version);
+    PutFormatted(FSTR("FIRM\nV%3d"), FW_Version);
 
     return false;
 }
@@ -1897,7 +1897,7 @@ bool Menu_FensSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_FensSub11(uint8_t task __attribute__((unused)))
 {
-    PutFormatted("%d0 M", (MenuLow & 0x0F));
+    PutFormatted(FSTR("%d0 M"), (MenuLow & 0x0F));
 
     return false;
 }
@@ -2108,7 +2108,7 @@ static bool MenuProg_Com(uint8_t task)
     {
         div_t d;
         d = div((int)y, 6);
-        PutFormatted("%2d:%d0\n    ", d.quot, d.rem);
+        PutFormatted(FSTR("%2d:%d0\n    "), d.quot, d.rem);
         Show_TimerSetBar(&BarBase[menu_num & 0x0F]);
     }
 
@@ -2296,7 +2296,7 @@ bool Menu_TempSub1(uint8_t task)
     }
 
     // MTS11
-    PutFormatted("%3d" DEGREE "\n    ", InHouseTemp);
+    PutFormatted(FSTR("%3d" DEGREE "\n    "), InHouseTemp);
     PutSymbol(LCD_InHouse_SET, 3);
 
     return false;
@@ -2353,7 +2353,7 @@ bool Menu_ZeitSub1(uint8_t task)
 
         return true;
     }
-    PutFormatted("20%02d\n    ", TOD.Years);
+    PutFormatted(FSTR("20%02d\n    "), TOD.Years);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2392,7 +2392,7 @@ bool Menu_ZeitSub2(uint8_t task)
 
         return true;
     }
-    PutFormatted("%02d%02d\n%02d  ", TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
+    PutFormatted(FSTR("%02d%02d\n%02d  "), TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
     SetPoint();
 
     uint8_t dow = CalcDayOfWeek();
@@ -2431,7 +2431,7 @@ bool Menu_ZeitSub3(uint8_t task)
 
         return true;
     }
-    PutFormatted("%02d%02d\n  %02d", TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
+    PutFormatted(FSTR("%02d%02d\n  %02d"), TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2470,7 +2470,7 @@ bool Menu_ZeitSub4(uint8_t task)
 
         return true;
     }
-    PutFormatted("%2d%02d\n  %02d", TOD.Hours, TOD.Minutes, TOD.Minutes);
+    PutFormatted(FSTR("%2d%02d\n  %02d"), TOD.Hours, TOD.Minutes, TOD.Minutes);
     SetColon();
 
     return false;
@@ -2506,7 +2506,7 @@ bool Menu_ZeitSub5(uint8_t task)
 
         return true;
     }
-    PutFormatted("%2d%02d\n%2d  ", TOD.Hours, TOD.Minutes, TOD.Hours);
+    PutFormatted(FSTR("%2d%02d\n%2d  "), TOD.Hours, TOD.Minutes, TOD.Hours);
     SetColon();
 
     return false;
