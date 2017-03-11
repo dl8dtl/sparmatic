@@ -7,12 +7,13 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 8090a6299eb4 2017/03/10 22:34:15 "Joerg $ */
+/* $Id: comet.c,v 9d1bb6b8bc07 2017/03/11 12:59:26 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
@@ -24,6 +25,9 @@
 #include "defines.h"
 
 #define DEGREE "@"  // used as degree symbol
+
+/* Helper macro for flash strings */
+#define FSTR(s) ({static const __flash char __c[] = (s); &__c[0];})
 
 /* These variables use hardwired registers in assembly version */
 uint8_t MotPWMCT;        /* r4 */
@@ -320,7 +324,8 @@ const __flash struct menuentry MenuTable[] =
 struct eedata eemem EEMEM;
 
 static void Clear_Screen(void);
-static void PutString(const char *s);
+static void PutString(const __flash char *s);
+static void PutFormatted(const __flash char *fmt, ...);
 static void ReadButtons(void);
 static void Adaptation(void);
 static void Measure_Motor_Current(void);
@@ -500,7 +505,7 @@ ISR(PCINT0_vect)
         Store_Time();
         Clear_Screen();
 
-        PutString("OFF ");
+        PutString(FSTR("OFF "));
 
         set_sleep_mode(SLEEP_MODE_PWR_SAVE);
         for (;;)
@@ -1050,16 +1055,12 @@ void Show_Current_Temperature(void)
             return;
         if ((DisplayCT & 0b000000111) != 0)
             return;
-        char b[5];
-        sprintf(b, "%3d" DEGREE, TempInt);
-        PutString(b);
+        PutFormatted("%3d" DEGREE, TempInt);
     }
     else if (UserDisplay == 5)
     {
         // Show Set Temp
-        char b[10];
-        sprintf(b, "%3d" DEGREE "\n    ", SetTemp);
-        PutString(b);
+        PutFormatted("%3d" DEGREE "\n    ", SetTemp);
         // clear point between segment 1 and 2
         DisplayBuffer1[7] &= ~0x80;
         DisplayBuffer2[7] &= ~0x80;
@@ -1097,9 +1098,7 @@ void Show_Current_Time(void)
     DisplayBuffer1[7] &= ~0x80;
     DisplayBuffer2[7] &= ~0x80;
 
-    char b[5];
-    sprintf(b, "%2d:%02d", TOD.Hours, TOD.Minutes);
-    PutString(b);
+    PutFormatted("%2d:%02d", TOD.Hours, TOD.Minutes);
     // set colon between segment 1 and 2
     DisplayBuffer1[16] |= 0x80;
 }
@@ -1127,33 +1126,65 @@ static char MapChar(char c)
 }
 
 
-void PutString(const char *s)
+static void PutStringBackend(const char *s, bool is_flash)
 {
     // two lines given?
-    if (strchr(s, '\n'))
+    const char *x = is_flash? strchr_P(s, '\n'): strchr(s, '\n');
+    if (x)
     {
         // yes: fill both lines into different display buffers
         uint8_t pos = 0;
         const char *cp;
-        for (cp = s; *cp != '\n'; cp++, pos++)
-            Get_Character(DisplayBuffer1, MapChar(*cp), pos);
+        for (cp = s;; cp++, pos++)
+        {
+            unsigned char c = is_flash? pgm_read_byte(cp): *cp;
+            if (c == '\n')
+                break;
+            Get_Character(DisplayBuffer1, MapChar(c), pos);
+        }
         cp++;
         pos = 0;
-        for (; *cp != 0; cp++, pos++)
-            Get_Character(DisplayBuffer2, MapChar(*cp), pos);
+        for (;; cp++, pos++)
+        {
+            unsigned char c = is_flash? pgm_read_byte(cp): *cp;
+            if (c == 0)
+                break;
+            Get_Character(DisplayBuffer2, MapChar(c), pos);
+        }
     }
     else
     {
         // no: fill both buffers with same contents
         uint8_t pos = 0;
-        for (const char *cp = s; *cp != '\n'; cp++, pos++)
+        for (const char *cp = s;; cp++, pos++)
         {
-            Get_Character(DisplayBuffer1, MapChar(*cp), pos);
-            Get_Character(DisplayBuffer2, MapChar(*cp), pos);
+            unsigned char c = is_flash? pgm_read_byte(cp): *cp;
+            if (c == 0)
+                break;
+            c = MapChar(c);
+            Get_Character(DisplayBuffer1, c, pos);
+            Get_Character(DisplayBuffer2, c, pos);
         }
     }
 }
 
+
+void PutString(const __flash char *s)
+{
+    PutStringBackend((const char *)s, true);
+}
+
+void PutFormatted(const __flash char *fmt, ...)
+{
+    char b[20];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf_P(b, (const char *)fmt, ap);
+    va_end(ap);
+
+    PutStringBackend(b, false);
+}
 
 void Copy_DisplayBuffers(void)
 {
@@ -1310,7 +1341,7 @@ void Adaptation(void)
             MotTimeOut = 0;
             AdaptStep++;
             // flashing arrow "moving" left
-            PutString("< < \n < <");
+            PutString(FSTR("< < \n < <"));
             // asm code sets only RFLXCTH (why?)
             RFLXCT = 0x1000;
             break;
@@ -1323,7 +1354,7 @@ void Adaptation(void)
                 if (Buttons == OK_Button)
                 {
                     AdaptStep = 4;
-                    PutString("ADAP");
+                    PutString(FSTR("ADAP"));
                     Position = 0;
                 }
             }
@@ -1449,7 +1480,7 @@ void MotorControl(void)
     // in adaptation mode, increase adaptation step
     if (AdaptStep == 1)
     {
-        PutString("INST\n OK ");
+        PutString(FSTR("INST\n OK "));
     }
     AdaptStep++;
 }
@@ -1795,7 +1826,7 @@ void User_Action(void)
 
 bool Menu_Adapt(uint8_t task __attribute__((unused)))
 {
-    PutString("ADAP");
+    PutString(FSTR("ADAP"));
 
     return false;
 }
@@ -1810,117 +1841,105 @@ bool Menu_AdaptSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_1(uint8_t task __attribute__((unused)))
 {
-    char b[10];
-    sprintf(b, "FUZZ\n%4d", FuzzyVal);
-    PutString(b);
+    PutFormatted("FUZZ\n%4d", FuzzyVal);
 
     return false;
 }
 
 bool Menu_Dbg_2(uint8_t task __attribute__((unused)))
 {
-    char b[10];
-    sprintf(b, "POSI\n%4d", Position);
-    PutString(b);
+    PutFormatted("POSI\n%4d", Position);
 
     return false;
 }
 
 bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
 {
-    char b[10];
-    sprintf(b, "VTOP\n%4d", ValveTop);
-    PutString(b);
+    PutFormatted("VTOP\n%4d", ValveTop);
 
     return false;
 }
 
 bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 {
-    char b[10];
-    sprintf(b, "RWAY\n%4d", RegWay);
-    PutString(b);
+    PutFormatted("RWAY\n%4d", RegWay);
 
     return false;
 }
 
 bool Menu_Dbg_FW(uint8_t task __attribute__((unused)))
 {
-    char b[10];
-    sprintf(b, "FIRM\nV%3d", FW_Version);
-    PutString(b);
+    PutFormatted("FIRM\nV%3d", FW_Version);
 
     return false;
 }
 
 bool Menu_Debug(uint8_t task __attribute__((unused)))
 {
-    PutString("DBUG");
+    PutString(FSTR("DBUG"));
 
     return false;
 }
 
 bool Menu_Fens(uint8_t task __attribute__((unused)))
 {
-    PutString("FENS");
+    PutString(FSTR("FENS"));
 
     return false;
 }
 
 bool Menu_FensSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("HOCH");
+    PutString(FSTR("HOCH"));
 
     return false;
 }
 
 bool Menu_FensSub11(uint8_t task __attribute__((unused)))
 {
-    char b[5];
-    sprintf(b, "%d0 M", (MenuLow & 0x0F));
-    PutString(b);
+    PutFormatted("%d0 M", (MenuLow & 0x0F));
 
     return false;
 }
 
 bool Menu_FensSub2(uint8_t task __attribute__((unused)))
 {
-    PutString("MITT");
+    PutString(FSTR("MITT"));
 
     return false;
 }
 
 bool Menu_FensSub3(uint8_t task __attribute__((unused)))
 {
-    PutString("NIED");
+    PutString(FSTR("NIED"));
 
     return false;
 }
 
 bool Menu_Inst(uint8_t task __attribute__((unused)))
 {
-    PutString("INST");
+    PutString(FSTR("INST"));
 
     return false;
 }
 
 bool Menu_InstSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("<<<<");
+    PutString(FSTR("<<<<"));
 
     return false;
 }
 
 bool Menu_Mode(uint8_t task __attribute__((unused)))
 {
-    PutString("MODE");
+    PutString(FSTR("MODE"));
 
     return false;
 }
 
 bool Menu_ModeSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("MANU\n    ");
+    PutString(FSTR("MANU\n    "));
 
     return false;
 }
@@ -1936,7 +1955,7 @@ bool Menu_ModeSub11(uint8_t task __attribute__((unused)))
 
 bool Menu_ModeSub2(uint8_t task __attribute__((unused)))
 {
-    PutString("AUTO\n    ");
+    PutString(FSTR("AUTO\n    "));
 
     return false;
 }
@@ -1952,14 +1971,14 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
 
 bool Menu_Offs(uint8_t task __attribute__((unused)))
 {
-    PutString("OFFS");
+    PutString(FSTR("OFFS"));
 
     return false;
 }
 
 bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("+0" DEGREE " ");
+    PutString(FSTR("+0" DEGREE " "));
 
     return false;
 }
@@ -1967,14 +1986,14 @@ bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Prog(uint8_t task __attribute__((unused)))
 {
-    PutString("PROG");
+    PutString(FSTR("PROG"));
 
     return false;
 }
 
 bool Menu_ProgSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG1\n    ");
+    PutString(FSTR("TAG1\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
 
@@ -2083,15 +2102,13 @@ static bool MenuProg_Com(uint8_t task)
     if (y == 255)
     {
         // TimerInactive
-        PutString("::::\n    ");
+        PutString(FSTR("::::\n    "));
     }
     else
     {
         div_t d;
         d = div((int)y, 6);
-        char b[10];
-        sprintf(b, "%2d:%d0\n    ", d.quot, d.rem);
-        PutString(b);
+        PutFormatted("%2d:%d0\n    ", d.quot, d.rem);
         Show_TimerSetBar(&BarBase[menu_num & 0x0F]);
     }
 
@@ -2133,7 +2150,7 @@ bool Menu_ProgSub14(uint8_t task)
 
 bool Menu_ProgSub2(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG2\n    ");
+    PutString(FSTR("TAG2\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Di_SET, 1);
 
@@ -2142,7 +2159,7 @@ bool Menu_ProgSub2(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub3(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG3\n    ");
+    PutString(FSTR("TAG3\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Mi_SET, 1);
 
@@ -2151,7 +2168,7 @@ bool Menu_ProgSub3(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub4(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG4\n    ");
+    PutString(FSTR("TAG4\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Do_SET, 1);
 
@@ -2160,7 +2177,7 @@ bool Menu_ProgSub4(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub5(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG5\n    ");
+    PutString(FSTR("TAG5\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Fr_SET, 1);
 
@@ -2169,7 +2186,7 @@ bool Menu_ProgSub5(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub6(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG6\n    ");
+    PutString(FSTR("TAG6\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Sa_SET, 1);
 
@@ -2178,7 +2195,7 @@ bool Menu_ProgSub6(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub7(uint8_t task __attribute__((unused)))
 {
-    PutString("TAG7\n    ");
+    PutString(FSTR("TAG7\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_So_SET, 1);
 
@@ -2187,7 +2204,7 @@ bool Menu_ProgSub7(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub8(uint8_t task __attribute__((unused)))
 {
-    PutString("T1:5\n    ");
+    PutString(FSTR("T1:5\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2200,7 +2217,7 @@ bool Menu_ProgSub8(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSub9(uint8_t task __attribute__((unused)))
 {
-    PutString("T1:6\n    ");
+    PutString(FSTR("T1:6\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2214,7 +2231,7 @@ bool Menu_ProgSub9(uint8_t task __attribute__((unused)))
 
 bool Menu_ProgSubA(uint8_t task __attribute__((unused)))
 {
-    PutString("T1:7\n    ");
+    PutString(FSTR("T1:7\n    "));
     ClearWeekDays();
     PutWeekDay(LCD_Mo_SET, 1);
     PutWeekDay(LCD_Di_SET, 1);
@@ -2229,14 +2246,14 @@ bool Menu_ProgSubA(uint8_t task __attribute__((unused)))
 
 bool Menu_Reset(uint8_t task __attribute__((unused)))
 {
-    PutString("RES ");
+    PutString(FSTR("RES "));
 
     return false;
 }
 
 bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 {
-    PutString(" OK ");
+    PutString(FSTR(" OK "));
 
     return false;
 }
@@ -2244,7 +2261,7 @@ bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Temp(uint8_t task __attribute__((unused)))
 {
-    PutString("TEMP");
+    PutString(FSTR("TEMP"));
 
     return false;
 }
@@ -2279,9 +2296,7 @@ bool Menu_TempSub1(uint8_t task)
     }
 
     // MTS11
-    char b[10];
-    sprintf(b, "%3d" DEGREE "\n    ", InHouseTemp);
-    PutString(b);
+    PutFormatted("%3d" DEGREE "\n    ", InHouseTemp);
     PutSymbol(LCD_InHouse_SET, 3);
 
     return false;
@@ -2289,21 +2304,21 @@ bool Menu_TempSub1(uint8_t task)
 
 bool Menu_Urla(uint8_t task __attribute__((unused)))
 {
-    PutString("URLA");
+    PutString(FSTR("URLA"));
 
     return false;
 }
 
 bool Menu_UrlaSub1(uint8_t task __attribute__((unused)))
 {
-    PutString("DATE");
+    PutString(FSTR("DATE"));
 
     return false;
 }
 
 bool Menu_Zeit(uint8_t task __attribute__((unused)))
 {
-    PutString("ZEIT");
+    PutString(FSTR("ZEIT"));
 
     return false;
 }
@@ -2338,9 +2353,7 @@ bool Menu_ZeitSub1(uint8_t task)
 
         return true;
     }
-    char b[10];
-    sprintf(b, "20%02d\n    ", TOD.Years);
-    PutString(b);
+    PutFormatted("20%02d\n    ", TOD.Years);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2379,9 +2392,7 @@ bool Menu_ZeitSub2(uint8_t task)
 
         return true;
     }
-    char b[10];
-    sprintf(b, "%02d%02d\n%02d  ", TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
-    PutString(b);
+    PutFormatted("%02d%02d\n%02d  ", TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
     SetPoint();
 
     uint8_t dow = CalcDayOfWeek();
@@ -2420,9 +2431,7 @@ bool Menu_ZeitSub3(uint8_t task)
 
         return true;
     }
-    char b[10];
-    sprintf(b, "%02d%02d\n  %02d", TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
-    PutString(b);
+    PutFormatted("%02d%02d\n  %02d", TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
 
     uint8_t dow = CalcDayOfWeek();
     ClearWeekDays();
@@ -2461,9 +2470,7 @@ bool Menu_ZeitSub4(uint8_t task)
 
         return true;
     }
-    char b[10];
-    sprintf(b, "%2d%02d\n  %02d", TOD.Hours, TOD.Minutes, TOD.Minutes);
-    PutString(b);
+    PutFormatted("%2d%02d\n  %02d", TOD.Hours, TOD.Minutes, TOD.Minutes);
     SetColon();
 
     return false;
@@ -2499,9 +2506,7 @@ bool Menu_ZeitSub5(uint8_t task)
 
         return true;
     }
-    char b[10];
-    sprintf(b, "%2d%02d\n%2d  ", TOD.Hours, TOD.Minutes, TOD.Hours);
-    PutString(b);
+    PutFormatted("%2d%02d\n%2d  ", TOD.Hours, TOD.Minutes, TOD.Hours);
     SetColon();
 
     return false;
