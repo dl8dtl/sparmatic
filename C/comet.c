@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 22bbe0279e35 2017/03/11 13:12:12 "Joerg $ */
+/* $Id: comet.c,v 9157cb1ecf17 2017/03/12 21:02:08 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1098,7 +1098,7 @@ void Show_Current_Time(void)
     DisplayBuffer1[7] &= ~0x80;
     DisplayBuffer2[7] &= ~0x80;
 
-    PutFormatted(FSTR("%2d:%02d"), TOD.Hours, TOD.Minutes);
+    PutFormatted(FSTR("%2d%02d"), TOD.Hours, TOD.Minutes);
     // set colon between segment 1 and 2
     DisplayBuffer1[16] |= 0x80;
 }
