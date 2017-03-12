@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9157cb1ecf17 2017/03/12 21:02:08 "Joerg $ */
+/* $Id: comet.c,v d5ffff8605dc 2017/03/12 21:54:19 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2013,13 +2013,13 @@ static void CopyTimerBlock(uint8_t block)
         case 0x90:
             // _Copy1_6
             for (uint8_t i = 0; i < 6; i++)
-                memcpy(DailyTimer + i * 9, DailyTimer + 63, 9);
+                memcpy(DailyTimer + i * 9, DailyTimer + 72, 9);
             break;
 
         case 0xa0:
             // _Copy1_7
             for (uint8_t i = 0; i < 7; i++)
-                memcpy(DailyTimer + i * 9, DailyTimer + 63, 9);
+                memcpy(DailyTimer + i * 9, DailyTimer + 81, 9);
             break;
 
         default:
