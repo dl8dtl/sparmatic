@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 1c32711b2ee2 2017/03/13 22:07:17 "Joerg $ */
+/* $Id: comet.c,v 29417d6effb4 2017/03/14 22:14:19 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1105,6 +1105,10 @@ void Show_Current_Time(void)
 
 static void Get_Character(uint8_t *bp, char c, uint8_t pos)
 {
+    if (pos >= 4)
+        return;
+    if (c < '0' || c > 'Z')
+        return;
     uint16_t bits = LCD_Character_Table[(unsigned)(c - '0')];
     for (uint8_t i = 0; i < 14; i++, bits >>= 1)
     {
@@ -1180,7 +1184,7 @@ void PutFormatted(const __flash char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-    vsprintf_P(b, (const char *)fmt, ap);
+    vsnprintf_P(b, sizeof(b), (const char *)fmt, ap);
     va_end(ap);
 
     PutStringBackend(b, false);
