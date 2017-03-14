@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 29417d6effb4 2017/03/14 22:14:19 "Joerg $ */
+/* $Id: comet.c,v f8288e5710b5 2017/03/14 22:28:42 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1020,7 +1020,7 @@ void Show_TimerSetBar(uint8_t *set_time)
                 if (p[0] > p[-1])
                 {
                     PutBargraph(h | 0x80, 3);
-                    uint8_t h1 = *p++ - 1 / 6 + 1;
+                    uint8_t h1 = (*p++ - 1) / 6 + 1;
                     while (h1 != h)
                     {
                         PutBargraph(h | 0x80, 3);
@@ -2092,7 +2092,7 @@ static bool MenuProg_Com(uint8_t task)
                 // ...set all day timers after one inactive Timer also to inactive state...
                 uint8_t i = (MenuLow & 0x0F) - 8;
                 // ClearInactiveTimers
-                while (i++ != 0) // XXX?
+                while (i-- != 0)
                     *p++ = 255;
                 MenuLow = (MenuLow & 0xF0) + 8;
                 // IncSubSub[2]
@@ -2106,7 +2106,7 @@ static bool MenuProg_Com(uint8_t task)
     if (y == 255)
     {
         // TimerInactive
-        PutString(FSTR("::::\n    "));
+        PutString(FSTR("----\n    "));
     }
     else
     {
