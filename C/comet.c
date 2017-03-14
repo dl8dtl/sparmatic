@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v f8288e5710b5 2017/03/14 22:28:42 "Joerg $ */
+/* $Id: comet.c,v ee7833e28ee2 2017/03/14 22:41:48 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2039,6 +2039,13 @@ static bool MenuProg_Com(uint8_t task)
     uint8_t x = ((menu_num & 0xF0) >> 4) * 9 /* number of timers per Day */;
     BarBase = DailyTimer + x;
     uint8_t *p = &BarBase[menu_num & 0x0F];
+    if ((MenuLow & 1) == 0)
+    {
+        // second part of a day timer
+        if (p[0] == 0 /* not set */ &&
+            p[-1] != 0 /* start timer is set */)
+            p[0] = p[-1];  // set end time to start time
+    }
     uint8_t y = *p; // TempH in asm
     switch (task)
     {
