@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ee7833e28ee2 2017/03/14 22:41:48 "Joerg $ */
+/* $Id: comet.c,v e7fa1769e8bd 2017/03/15 19:27:53 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -79,9 +79,9 @@ uint8_t FuzzyVal;
 uint8_t test;
 
 
-uint16_t InHouseTemp;
-uint16_t OffHouseTemp;
-uint16_t NightTemp;
+uint16_t InHouseTemp = 220;
+uint16_t OffHouseTemp = 190;
+uint16_t NightTemp = 100;
 uint16_t WindowOpenTemp;
 
 uint8_t DisplayBuffer1[20];
@@ -157,6 +157,8 @@ static bool Menu_Reset(uint8_t);
 static bool Menu_ResetSub1(uint8_t);
 static bool Menu_Temp(uint8_t);
 static bool Menu_TempSub1(uint8_t);
+static bool Menu_TempSub2(uint8_t);
+static bool Menu_TempSub3(uint8_t);
 static bool Menu_Urla(uint8_t);
 static bool Menu_UrlaSub1(uint8_t);
 static bool Menu_Zeit(uint8_t);
@@ -284,8 +286,9 @@ const __flash struct menuentry MenuTable[] =
     { .main = 0x01, .sub = 0xA8, .func = Menu_ProgSub12 },
     { .main = 0x01, .sub = 0xA9, .func = Menu_ProgSub14 },
     { .main = 0x02, .sub = 0x00, .func = Menu_Temp      }, // TEMP   ID64
-    { .main = 0x02, .sub = 0x10, .func = Menu_TempSub1  }, // onT    ID65
-    { .main = 0x02, .sub = 0x20, .func = Menu_TempSub1  }, // offT   ID66
+    { .main = 0x02, .sub = 0x10, .func = Menu_TempSub1  }, // InHouse
+    { .main = 0x02, .sub = 0x20, .func = Menu_TempSub2  }, // OffHouse
+    { .main = 0x02, .sub = 0x30, .func = Menu_TempSub3  }, // Night
     { .main = 0x03, .sub = 0x00, .func = Menu_Zeit      }, // ZEIT   ID67
     { .main = 0x03, .sub = 0x10, .func = Menu_ZeitSub1  }, // set year   ID68
     { .main = 0x03, .sub = 0x20, .func = Menu_ZeitSub2  }, // set month  ID69
@@ -2308,7 +2311,80 @@ bool Menu_TempSub1(uint8_t task)
 
     // MTS11
     PutFormatted(FSTR("%3d" DEGREE "\n    "), InHouseTemp);
+    SetPoint();
     PutSymbol(LCD_InHouse_SET, 3);
+
+    return false;
+}
+
+bool Menu_TempSub2(uint8_t task)
+{
+    Status0 |= MenuWork;
+
+    switch (task)
+    {
+    case 1:
+        // Minus
+        OffHouseTemp -= 5;
+        if (OffHouseTemp < 40)
+            OffHouseTemp = 40;
+        break;
+
+    case 2:
+        // Plus
+        OffHouseTemp += 5;
+        if (OffHouseTemp > 350)
+            OffHouseTemp = 350;
+        break;
+
+    case 3:
+        // Enter
+        Status0 &= ~MenuWork;
+        MenuLow = 0;
+        ClearPoint();
+
+        return true;
+    }
+
+    PutFormatted(FSTR("%3d" DEGREE "\n    "), OffHouseTemp);
+    SetPoint();
+    PutSymbol(LCD_OffHouse_SET, 3);
+
+    return false;
+}
+
+bool Menu_TempSub3(uint8_t task)
+{
+    Status0 |= MenuWork;
+
+    switch (task)
+    {
+    case 1:
+        // Minus
+        NightTemp -= 5;
+        if (NightTemp < 40)
+            NightTemp = 40;
+        break;
+
+    case 2:
+        // Plus
+        NightTemp += 5;
+        if (NightTemp > 350)
+            NightTemp = 350;
+        break;
+
+    case 3:
+        // Enter
+        Status0 &= ~MenuWork;
+        MenuLow = 0;
+        ClearPoint();
+
+        return true;
+    }
+
+    PutFormatted(FSTR("%3d" DEGREE "\n    "), NightTemp);
+    SetPoint();
+    PutSymbol(LCD_Moon_SET, 3);
 
     return false;
 }
