@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v ff998da6b532 2017/03/06 22:17:21 "Joerg $ */
+/* $Id: defines.h,v a8db94759ce1 2017/03/15 19:34:32 "Joerg $ */
 
 #include <stdint.h>
 
@@ -175,6 +175,7 @@ extern uint8_t UserDisplay;
 extern uint16_t iNTCV;
 extern uint8_t PSC1;
 extern uint16_t SetTemp;
+extern int16_t TempOffset;
 extern uint16_t Ek;
 extern uint8_t RegWay;
 extern uint8_t DisplayCT;

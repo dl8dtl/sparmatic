@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v e7fa1769e8bd 2017/03/15 19:27:53 "Joerg $ */
+/* $Id: comet.c,v a8db94759ce1 2017/03/15 19:34:32 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -62,6 +62,7 @@ uint8_t UserDisplay;
 uint16_t iNTCV;
 uint8_t PSC1 = 4;
 uint16_t SetTemp = 200;
+int16_t TempOffset;
 uint16_t Ek;
 uint8_t RegWay;
 uint8_t DisplayCT;
@@ -884,7 +885,7 @@ void Regulate(void)
     if (dt < 0) dt = -dt;
     if (dt == 0) dt = 1;
     if (dt > 4) dt = 4;
-    int16_t diff = TempInt - SetTemp;
+    int16_t diff = TempInt + TempOffset - SetTemp;
 
     if (diff >= 15)
     {
@@ -1985,7 +1986,7 @@ bool Menu_Offs(uint8_t task __attribute__((unused)))
 
 bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 {
-    PutString(FSTR("+0" DEGREE " "));
+    PutFormatted(FSTR("%+2d" DEGREE " "), TempOffset / 10);
 
     return false;
 }
