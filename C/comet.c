@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 285285ce1210 2017/03/15 22:14:26 "Joerg $ */
+/* $Id: comet.c,v a9ea91bd3e79 2017/03/15 22:40:45 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -85,6 +85,12 @@ enum
 }
 OpMode;
 
+enum automode
+{
+    OFF, INHOUSE, OFFHOUSE, NIGHT, WINDOW
+};
+
+enum automode CurrAutoMode;
 
 uint16_t InHouseTemp = 220;
 uint16_t OffHouseTemp = 190;
@@ -1590,6 +1596,66 @@ static void Set_SetTemperature_Down(void)
     ADCPrescaler = 10;
 }
 
+static void EvalAutoMode(void)
+{
+    uint8_t time10min = TOD.Hours * 6 + TOD.Minutes;
+    uint8_t dow = TOD.WDays;
+    // avoid out of bounds access for wrong clock
+    if (dow > 6) dow = 0;
+    if (time10min > 24 * 6) time10min = 0;
+    uint8_t *timerBase = DailyTimer + 9 * dow;
+    enum automode newMode = OFF;
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (time10min >= timerBase[2 * i] &&
+            time10min < timerBase[2 * i + 1])
+            // interval matches
+        {
+            newMode = INHOUSE;
+            break;
+        }
+    }
+    if (newMode == OFF)
+    {
+        // no iterval matched; if time10min is beyond
+        // night limit, or before first value, set
+        // night mode, otherwise offhouse mode
+        if (time10min >= timerBase[8] ||
+            time10min < timerBase[0])
+            newMode = NIGHT;
+        else
+            newMode = OFFHOUSE;
+    }
+    if (newMode != CurrAutoMode)
+    {
+        // transition, set new temperature
+        CurrAutoMode = newMode;
+        ClearSymbols();
+        switch (newMode)
+        {
+            case INHOUSE:
+                PutSymbol(LCD_InHouse_SET, 3);
+                SetTemp = InHouseTemp;
+                break;
+
+            case OFFHOUSE:
+                PutSymbol(LCD_OffHouse_SET, 3);
+                SetTemp = OffHouseTemp;
+                break;
+
+            case NIGHT:
+                PutSymbol(LCD_Moon_SET, 3);
+                SetTemp = NightTemp;
+                break;
+
+            default:
+                // can't happen; no change
+                break;
+        }
+    }
+}
+
+
 static void Get_Menu(uint8_t task)
 {
     ActiveCT = 20;
@@ -1983,6 +2049,7 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Manu_CLR, 3);
     PutSymbol(LCD_Auto_SET, 3);
     OpMode = AUTO;
+    EvalAutoMode();
     MenuModeOff();
 
     return false;
@@ -2670,7 +2737,11 @@ void Clock(void)
         PSC1 = 5; // adjust value for prescaler1 interval (default 4)
         TimeAdjust = 35; // TimeAdjust interval counter
     }
-    if (++TOD.Minutes != 60)
+    TOD.Minutes++;
+    if (OpMode == AUTO && TOD.Minutes % 10 == 0)
+        // new ten minute interval, see whether we have to switch modes
+        EvalAutoMode();
+    if (TOD.Minutes != 60)
         return;
     TOD.Minutes = 0;
     TOD.Hours++;
