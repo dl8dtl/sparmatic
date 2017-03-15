@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v a8db94759ce1 2017/03/15 19:34:32 "Joerg $ */
+/* $Id: comet.c,v 33bcbfb12fed 2017/03/15 19:43:04 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1059,7 +1059,7 @@ void Show_Current_Temperature(void)
             return;
         if ((DisplayCT & 0b000000111) != 0)
             return;
-        PutFormatted(FSTR("%3d" DEGREE), TempInt);
+        PutFormatted(FSTR("%3d" DEGREE), TempInt + TempOffset);
     }
     else if (UserDisplay == 5)
     {
@@ -1986,6 +1986,32 @@ bool Menu_Offs(uint8_t task __attribute__((unused)))
 
 bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
 {
+    Status0 |= MenuWork;
+
+    switch (task)
+    {
+    case 1:
+        // Minus
+        TempOffset -= 10;
+        if (TempOffset < -50)
+            TempOffset = -50;
+        break;
+
+    case 2:
+        // Plus
+        TempOffset += 10;
+        if (TempOffset > 50)
+            TempOffset = 50;
+        break;
+
+    case 3:
+        // Enter
+        Status0 &= ~MenuWork;
+        MenuLow = 0;
+
+        return true;
+    }
+
     PutFormatted(FSTR("%+2d" DEGREE " "), TempOffset / 10);
 
     return false;
