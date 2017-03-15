@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v c1a76b68dcfd 2017/03/15 20:57:25 "Joerg $ */
+/* $Id: comet.c,v 285285ce1210 2017/03/15 22:14:26 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -78,6 +78,12 @@ uint8_t *BarBase;
 uint8_t FuzzyVal;
 //uint8_t FuzzyCounter;
 uint8_t test;
+
+enum
+{
+    MANU, AUTO
+}
+OpMode;
 
 
 uint16_t InHouseTemp = 220;
@@ -349,6 +355,7 @@ static void PutBargraph(uint8_t, uint8_t);
 static void Clear_Bargraph(void);
 static uint8_t CalcDayOfWeek(void);
 static uint8_t MonthLastDay(void);
+static void PutSymbol(uint8_t pos, uint8_t buffno);
 
 /* --- From LCDTable.inc ----------------------------------------- */
 
@@ -738,6 +745,8 @@ static void StartMain(void)
     Position = 0;
     AdaptStep = 0;
     Status0 |= Adapt;
+    OpMode = MANU;
+    PutSymbol(LCD_Manu_SET, 3);
 }
 
 
@@ -1956,6 +1965,7 @@ bool Menu_ModeSub11(uint8_t task __attribute__((unused)))
 {
     PutSymbol(LCD_Auto_CLR, 3);
     PutSymbol(LCD_Manu_SET, 3);
+    OpMode = MANU;
     MenuModeOff();
 
     return false;
@@ -1972,6 +1982,7 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
 {
     PutSymbol(LCD_Manu_CLR, 3);
     PutSymbol(LCD_Auto_SET, 3);
+    OpMode = AUTO;
     MenuModeOff();
 
     return false;
