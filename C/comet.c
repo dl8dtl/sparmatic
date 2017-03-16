@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v a9ea91bd3e79 2017/03/15 22:40:45 "Joerg $ */
+/* $Id: comet.c,v f77a048b03bc 2017/03/16 19:19:00 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2032,6 +2032,7 @@ bool Menu_ModeSub11(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Auto_CLR, 3);
     PutSymbol(LCD_Manu_SET, 3);
     OpMode = MANU;
+    Clear_Bargraph();
     MenuModeOff();
 
     return false;
@@ -2050,6 +2051,7 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Auto_SET, 3);
     OpMode = AUTO;
     EvalAutoMode();
+    Show_TimerSetBar(DailyTimer + TOD.WDays * 9);
     MenuModeOff();
 
     return false;
@@ -2781,6 +2783,8 @@ void Clock(void)
     if (++TOD.WDays == 7)
         TOD.WDays = 0;
     ClearWeekDays();
+    if (OpMode == AUTO)
+        Show_TimerSetBar(DailyTimer + TOD.WDays * 9);
     PutWeekDay(TOD.WDays | 0x80, 3);
     if (TOD.Days == MonthLastDay())
     {
