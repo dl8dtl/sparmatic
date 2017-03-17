@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v f77a048b03bc 2017/03/16 19:19:00 "Joerg $ */
+/* $Id: comet.c,v 813a5ab62941 2017/03/17 16:19:04 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -74,7 +74,6 @@ uint8_t MenuLow;
 uint8_t MenuHigh;
 uint8_t DispTimer;
 uint8_t OldBarBlink;
-uint8_t *BarBase;
 uint8_t FuzzyVal;
 //uint8_t FuzzyCounter;
 uint8_t test;
@@ -1022,7 +1021,7 @@ void Clear_Screen(void)
     memset(DisplayBuffer1, 0, 40);
 }
 
-void Show_TimerSetBar(uint8_t *set_time)
+void Show_TimerSetBar(uint8_t *BarBase, uint8_t *set_time)
 {
     Clear_Bargraph();
     uint8_t *p;
@@ -1055,9 +1054,12 @@ void Show_TimerSetBar(uint8_t *set_time)
             }
         }
     }
-    uint8_t t = *set_time / 6;
-    PutBargraph(t, 2);
-    PutBargraph(t | 0x80, 1);
+    if (set_time)
+    {
+        uint8_t t = *set_time / 6;
+        PutBargraph(t, 2);
+        PutBargraph(t | 0x80, 1);
+    }
 }
 
 void Show_Current_Temperature(void)
@@ -2051,7 +2053,7 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Auto_SET, 3);
     OpMode = AUTO;
     EvalAutoMode();
-    Show_TimerSetBar(DailyTimer + TOD.WDays * 9);
+    Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
     MenuModeOff();
 
     return false;
@@ -2149,7 +2151,7 @@ static bool MenuProg_Com(uint8_t task)
     SetColon();
     uint8_t menu_num = MenuLow - 0x11;
     uint8_t x = ((menu_num & 0xF0) >> 4) * 9 /* number of timers per Day */;
-    BarBase = DailyTimer + x;
+    uint8_t *BarBase = DailyTimer + x;
     uint8_t *p = &BarBase[menu_num & 0x0F];
     if ((MenuLow & 1) == 0)
     {
@@ -2232,7 +2234,7 @@ static bool MenuProg_Com(uint8_t task)
         div_t d;
         d = div((int)y, 6);
         PutFormatted(FSTR("%2d%d0\n    "), d.quot, d.rem);
-        Show_TimerSetBar(&BarBase[menu_num & 0x0F]);
+        Show_TimerSetBar(BarBase, &BarBase[menu_num & 0x0F]);
     }
 
     return false;
@@ -2782,9 +2784,9 @@ void Clock(void)
     TOD.Days++;
     if (++TOD.WDays == 7)
         TOD.WDays = 0;
-    ClearWeekDays();
     if (OpMode == AUTO)
-        Show_TimerSetBar(DailyTimer + TOD.WDays * 9);
+        Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
+    ClearWeekDays();
     PutWeekDay(TOD.WDays | 0x80, 3);
     if (TOD.Days == MonthLastDay())
     {
