@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v 5b012f290d35 2017/03/18 20:58:15 "Joerg $ */
+/* $Id: defines.h,v ec39a786bc09 2017/03/18 21:16:10 "Joerg $ */
 
 #include <stdint.h>
 
@@ -286,4 +286,9 @@ struct eedata
     }
     valvestate;
     uint8_t dailytimer[TIMPERDAY * NTIMERS];
+    struct
+    {
+        uint16_t inhouse, offhouse, night, windowopen;
+    }
+    temperatures;
 };

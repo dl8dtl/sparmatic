@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v be7721563d64 2017/03/18 21:11:30 "Joerg $ */
+/* $Id: comet.c,v ec39a786bc09 2017/03/18 21:16:10 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -758,6 +758,18 @@ static void ReadBack_Progdata(void)
         if (DailyTimer[TIMPERDAY * tmrno] == 255)
             // EEPROM data for this timer unset
             memset(&DailyTimer[TIMPERDAY * tmrno], 0, TIMPERDAY);
+    uint16_t temp = eeprom_read_word(&eemem.temperatures.inhouse);
+    if (temp != 0xFFFF)
+        InHouseTemp = temp;
+    temp = eeprom_read_word(&eemem.temperatures.offhouse);
+    if (temp != 0xFFFF)
+        OffHouseTemp = temp;
+    temp = eeprom_read_word(&eemem.temperatures.night);
+    if (temp != 0xFFFF)
+        NightTemp = temp;
+    temp = eeprom_read_word(&eemem.temperatures.windowopen);
+    if (temp != 0xFFFF)
+        WindowOpenTemp = temp;
 }
 
 static void ReadBack_Valvestate(void)
