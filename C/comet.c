@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v eaceba102d5d 2017/03/18 20:37:58 "Joerg $ */
+/* $Id: comet.c,v 5b012f290d35 2017/03/18 20:58:15 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -55,7 +55,6 @@ uint8_t MotTimeOut;
 uint8_t AdaptStep;
 uint8_t MotorCurrent;
 uint8_t FreeMotorCurrent;
-uint8_t DebugAddress;
 uint8_t ADCPrescaler;
 struct time TOD;
 uint8_t UserDisplay;
@@ -100,8 +99,6 @@ uint8_t DisplayBuffer1[20];
 uint8_t DisplayBuffer2[20];
 
 uint8_t DailyTimer[TIMPERDAY * NTIMERS];
-
-uint8_t DebugBuffer[256];
 
 const __flash uint16_t NTCIntTable[] =
 {

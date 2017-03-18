@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v eaceba102d5d 2017/03/18 20:37:58 "Joerg $ */
+/* $Id: defines.h,v 5b012f290d35 2017/03/18 20:58:15 "Joerg $ */
 
 #include <stdint.h>
 
@@ -158,7 +158,6 @@ extern uint8_t MotTimeOut;
 extern uint8_t AdaptStep;
 extern uint8_t MotorCurrent;
 extern uint8_t FreeMotorCurrent;
-extern uint8_t DebugAddress;
 extern uint8_t ADCPrescaler;
 struct time
 {
