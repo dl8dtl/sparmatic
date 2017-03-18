@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 69eaa3d77268 2017/03/18 21:59:37 "Joerg $ */
+/* $Id: comet.c,v bb0629f0e528 2017/03/18 22:07:45 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -819,8 +819,21 @@ static void StartMain(void)
         AdaptStep = 0;
         Status0 |= Adapt;
     }
+    else
+    {
+        ADCPrescaler = 3;
+        UserDisplay = 0;
+        DisplayCT = 0;
+        DispTimer = 0;
+        uint8_t dow = CalcDayOfWeek();
+        ClearWeekDays();
+        PutWeekDay(dow | 0x80, 3);
+        DisplayBuffer1[0] |= 1; // switch on hour bar
+        DisplayBuffer2[0] |= 1;
+    }
     OpMode = MANU;
     PutSymbol(LCD_Manu_SET, 3);
+    PutSymbol(LCD_Auto_CLR, 3);
 }
 
 
@@ -2545,6 +2558,7 @@ bool Menu_ResetSub2(uint8_t task)
             StartMain();
             Status0 &= ~MenuOn;
             Status0 &= ~MenuWork;
+            MenuLow = 0;
 
             return true;
         }
