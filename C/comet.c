@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v e1d750787624 2017/03/18 20:32:41 "Joerg $ */
+/* $Id: comet.c,v eaceba102d5d 2017/03/18 20:37:58 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -165,6 +165,7 @@ static bool Menu_ProgSub7(uint8_t);
 static bool Menu_ProgSub8(uint8_t);
 static bool Menu_ProgSub9(uint8_t);
 static bool Menu_ProgSubA(uint8_t);
+static bool Menu_ProgSubB(uint8_t);
 static bool Menu_Reset(uint8_t);
 static bool Menu_ResetSub1(uint8_t);
 static bool Menu_Temp(uint8_t);
@@ -297,6 +298,16 @@ const __flash struct menuentry MenuTable[] =
     { .main = 0x01, .sub = 0xA7, .func = Menu_ProgSub13 },
     { .main = 0x01, .sub = 0xA8, .func = Menu_ProgSub12 },
     { .main = 0x01, .sub = 0xA9, .func = Menu_ProgSub14 },
+    { .main = 0x01, .sub = 0xB0, .func = Menu_ProgSubB  }, // T6-7
+    { .main = 0x01, .sub = 0xB1, .func = Menu_ProgSub11 },
+    { .main = 0x01, .sub = 0xB2, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xB3, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xB4, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xB5, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xB6, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xB7, .func = Menu_ProgSub13 },
+    { .main = 0x01, .sub = 0xB8, .func = Menu_ProgSub12 },
+    { .main = 0x01, .sub = 0xB9, .func = Menu_ProgSub14 },
     { .main = 0x02, .sub = 0x00, .func = Menu_Temp      }, // TEMP   ID64
     { .main = 0x02, .sub = 0x10, .func = Menu_TempSub1  }, // InHouse
     { .main = 0x02, .sub = 0x20, .func = Menu_TempSub2  }, // OffHouse
@@ -2164,19 +2175,25 @@ static void CopyTimerBlock(uint8_t block)
         case 0x80:
             // _Copy1_5
             for (uint8_t i = 0; i < 5; i++)
-                memcpy(DailyTimer + i * 9, DailyTimer + 63, 9);
+                memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 7, TIMPERDAY);
             break;
 
         case 0x90:
             // _Copy1_6
             for (uint8_t i = 0; i < 6; i++)
-                memcpy(DailyTimer + i * 9, DailyTimer + 72, 9);
+                memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 8, TIMPERDAY);
             break;
 
         case 0xa0:
             // _Copy1_7
             for (uint8_t i = 0; i < 7; i++)
-                memcpy(DailyTimer + i * 9, DailyTimer + 81, 9);
+                memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 9, TIMPERDAY);
+            break;
+
+        case 0xb0:
+            // 6-7
+            for (uint8_t i = 5; i < 7; i++)
+                memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 10, TIMPERDAY);
             break;
 
         default:
@@ -2231,7 +2248,7 @@ static bool MenuProg_Com(uint8_t task)
             {
                 // ProgSub11Enter1
                 // check for last subsub menu (night timer)
-                if ((MenuLow & 0x0F) == 9)
+                if ((MenuLow & 0x0F) == TIMPERDAY)
                 {
                     // save state to EEPROM
                     eeprom_write_block(BarBase, eemem.dailytimer + x, TIMPERDAY);
@@ -2423,6 +2440,16 @@ bool Menu_ProgSubA(uint8_t task __attribute__((unused)))
     PutWeekDay(LCD_Mi_SET, 1);
     PutWeekDay(LCD_Do_SET, 1);
     PutWeekDay(LCD_Fr_SET, 1);
+    PutWeekDay(LCD_Sa_SET, 1);
+    PutWeekDay(LCD_So_SET, 1);
+
+    return false;
+}
+
+bool Menu_ProgSubB(uint8_t task __attribute__((unused)))
+{
+    PutString(FSTR("T6:7\n    "));
+    ClearWeekDays();
     PutWeekDay(LCD_Sa_SET, 1);
     PutWeekDay(LCD_So_SET, 1);
 

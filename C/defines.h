@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v 788bea6cf58a 2017/03/18 20:13:58 "Joerg $ */
+/* $Id: defines.h,v eaceba102d5d 2017/03/18 20:37:58 "Joerg $ */
 
 #include <stdint.h>
 
@@ -202,8 +202,8 @@ extern uint8_t DisplayBuffer1[20];
 extern uint8_t DisplayBuffer2[20];
 
 /* 9 timers for each day (Hot,Cold,Hot,Cold,Hot,Cold,Hot,Cold,Night),
- * 7 days, 1-5 / 1-6 / 1-7 */
-#define NTIMERS 10
+ * 7 days, 1-5 / 1-6 / 1-7 / 6-7 */
+#define NTIMERS 11
 #define TIMPERDAY 9
 extern uint8_t DailyTimer[TIMPERDAY * NTIMERS];
 
