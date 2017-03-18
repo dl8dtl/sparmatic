@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 33f828cd0cb2 2017/03/18 21:25:01 "Joerg $ */
+/* $Id: comet.c,v 886643949a1c 2017/03/18 21:31:44 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1996,7 +1996,26 @@ bool Menu_AdaptSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_1(uint8_t task __attribute__((unused)))
 {
-    PutFormatted(FSTR("FUZZ\n%4d"), FuzzyVal);
+    char b[4];
+    switch (FuzzyVal & 0xfc)
+    {
+        case FuzzOK:    b[0] = 'O'; break;
+        case FuzzWarm:  b[0] = 'W'; break;
+        case FuzzHot:   b[0] = 'H'; break;
+        case FuzzCool:  b[0] = 'C'; break;
+        case FuzzCold:  b[0] = 'D'; break;
+        case FuzzAbove: b[0] = 'A'; break;
+        case FuzzBelow: b[0] = 'B'; break;
+    }
+    b[1] = '-';
+    switch (FuzzyVal & 0x03)
+    {
+        case TStatic:   b[2] = 'S'; break;
+        case TRise:     b[2] = 'R'; break;
+        case TFall:     b[2] = 'F'; break;
+    }
+    b[3] = 0;
+    PutFormatted(FSTR("FUZZ\n%4s"), b);
 
     return false;
 }
@@ -2024,7 +2043,7 @@ bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_FW(uint8_t task __attribute__((unused)))
 {
-    PutFormatted(FSTR("FIRM\nV%3d"), FW_Version);
+    PutFormatted(FSTR("FIRM\nV%03d"), FW_Version);
 
     return false;
 }
