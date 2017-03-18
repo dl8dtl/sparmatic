@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v ec39a786bc09 2017/03/18 21:16:10 "Joerg $ */
+/* $Id: defines.h,v fd181f7f07fd 2017/03/18 21:21:48 "Joerg $ */
 
 #include <stdint.h>
 
@@ -289,6 +289,7 @@ struct eedata
     struct
     {
         uint16_t inhouse, offhouse, night, windowopen;
+        int16_t offset;
     }
     temperatures;
 };

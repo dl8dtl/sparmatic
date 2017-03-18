@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ec39a786bc09 2017/03/18 21:16:10 "Joerg $ */
+/* $Id: comet.c,v fd181f7f07fd 2017/03/18 21:21:48 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -770,6 +770,9 @@ static void ReadBack_Progdata(void)
     temp = eeprom_read_word(&eemem.temperatures.windowopen);
     if (temp != 0xFFFF)
         WindowOpenTemp = temp;
+    temp = eeprom_read_word((uint16_t *)&eemem.temperatures.offset);
+    if (temp != 0xFFFF)
+        WindowOpenTemp = (int16_t)temp;
 }
 
 static void ReadBack_Valvestate(void)
