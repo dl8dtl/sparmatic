@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v b9c40ac20c83 2017/03/18 22:10:34 "Joerg $ */
+/* $Id: comet.c,v 238705da624a 2017/03/18 22:53:55 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1686,14 +1686,14 @@ static void Set_SetTemperature_Down(void)
 
 static void EvalAutoMode(void)
 {
-    uint8_t time10min = TOD.Hours * 6 + TOD.Minutes;
+    uint8_t time10min = TOD.Hours * 6 + TOD.Minutes / 10;
     uint8_t dow = TOD.WDays;
-    // avoid out of bounds access for wrong clock
+    // avoid out of bounds access due to wrong clock
     if (dow > 6) dow = 0;
     if (time10min > 24 * 6) time10min = 0;
-    uint8_t *timerBase = DailyTimer + 9 * dow;
+    uint8_t *timerBase = DailyTimer + TIMPERDAY * dow;
     enum automode newMode = OFF;
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < (TIMPERDAY / 2 - 1); i++)
     {
         if (time10min >= timerBase[2 * i] &&
             time10min < timerBase[2 * i + 1])
@@ -1708,7 +1708,7 @@ static void EvalAutoMode(void)
         // no iterval matched; if time10min is beyond
         // night limit, or before first value, set
         // night mode, otherwise offhouse mode
-        if (time10min >= timerBase[8] ||
+        if ((timerBase[8] != 0 && time10min >= timerBase[8]) ||
             time10min < timerBase[0])
             newMode = NIGHT;
         else
@@ -2137,9 +2137,11 @@ bool Menu_ModeSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_ModeSub11(uint8_t task __attribute__((unused)))
 {
+    ClearSymbols();
     PutSymbol(LCD_Auto_CLR, 3);
     PutSymbol(LCD_Manu_SET, 3);
     OpMode = MANU;
+    CurrAutoMode = OFF;
     Clear_Bargraph();
     MenuModeOff();
 
@@ -2158,6 +2160,7 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Manu_CLR, 3);
     PutSymbol(LCD_Auto_SET, 3);
     OpMode = AUTO;
+    CurrAutoMode = OFF;
     EvalAutoMode();
     Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
     MenuModeOff();
