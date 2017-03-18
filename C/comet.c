@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v e784d1911f19 2017/03/18 18:24:23 "Joerg $ */
+/* $Id: comet.c,v ea47be591271 2017/03/18 18:37:13 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2233,7 +2233,26 @@ static bool MenuProg_Com(uint8_t task)
     {
         div_t d;
         d = div((int)y, 6);
-        PutFormatted(FSTR("%2d%d0\n    "), d.quot, d.rem);
+        switch (MenuLow & 0x0F)
+        {
+            case 1:
+            case 3:
+            case 5:
+            case 7:
+                PutFormatted(FSTR("%2d%d0\nSTRT"), d.quot, d.rem);
+                break;
+
+            case 2:
+            case 4:
+            case 6:
+            case 8:
+                PutFormatted(FSTR("%2d%d0\nENDE"), d.quot, d.rem);
+                break;
+
+            default:
+                PutFormatted(FSTR("%2d%d0\n    "), d.quot, d.rem);
+                break;
+        }
         Show_TimerSetBar(BarBase, &BarBase[menu_num & 0x0F]);
     }
 
