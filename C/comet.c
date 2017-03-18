@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9305b6fc779e 2017/03/18 21:08:35 "Joerg $ */
+/* $Id: comet.c,v be7721563d64 2017/03/18 21:11:30 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2172,25 +2172,37 @@ static void CopyTimerBlock(uint8_t block)
         case 0x80:
             // _Copy1_5
             for (uint8_t i = 0; i < 5; i++)
+            {
                 memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 7, TIMPERDAY);
+                eeprom_write_block(DailyTimer + i * TIMPERDAY, eemem.dailytimer + i * TIMPERDAY, TIMPERDAY);
+            }
             break;
 
         case 0x90:
             // _Copy1_6
             for (uint8_t i = 0; i < 6; i++)
+            {
                 memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 8, TIMPERDAY);
+                eeprom_write_block(DailyTimer + i * TIMPERDAY, eemem.dailytimer + i * TIMPERDAY, TIMPERDAY);
+            }
             break;
 
         case 0xa0:
             // _Copy1_7
             for (uint8_t i = 0; i < 7; i++)
+            {
                 memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 9, TIMPERDAY);
+                eeprom_write_block(DailyTimer + i * TIMPERDAY, eemem.dailytimer + i * TIMPERDAY, TIMPERDAY);
+            }
             break;
 
         case 0xb0:
             // 6-7
             for (uint8_t i = 5; i < 7; i++)
+            {
                 memcpy(DailyTimer + i * TIMPERDAY, DailyTimer + TIMPERDAY * 10, TIMPERDAY);
+                eeprom_write_block(DailyTimer + i * TIMPERDAY, eemem.dailytimer + i * TIMPERDAY, TIMPERDAY);
+            }
             break;
 
         default:
