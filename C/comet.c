@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 218f61e0005a 2017/03/18 21:41:22 "Joerg $ */
+/* $Id: comet.c,v 027fbd9f1f95 2017/03/18 21:59:14 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2525,27 +2525,35 @@ bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 
 bool Menu_ResetSub2(uint8_t task)
 {
-    if (task == 3)
+    Status0 |= MenuWork;
+
+    switch (task)
     {
-        // Enter
-        // Clear eeprom
-        uint8_t *eeptr;
-        size_t i;
-        for (i = 0, eeptr = (uint8_t *)&eemem; i < sizeof(eemem); i++, eeptr++)
-            eeprom_write_byte(eeptr, 0xFF);
-        // Clear in-memory programming data
-        ReadBack_Progdata();
-        // Restart from scratch
-        ValveTop = 0; // force adaptation
-        StartMain();
-        Status0 &= ~MenuOn;
+        case 3:
+            // Enter
+        {
+            // Clear eeprom
+            uint8_t *eeptr;
+            size_t i;
+            for (i = 0, eeptr = (uint8_t *)&eemem; i < sizeof(eemem); i++, eeptr++)
+                eeprom_write_byte(eeptr, 0xFF);
+            // Clear in-memory programming data
+            ReadBack_Progdata();
+            // Restart from scratch
+            ValveTop = 0; // force adaptation
+            StartMain();
+            Status0 &= ~MenuOn;
+            Status0 &= ~MenuWork;
 
-        return false;
+            return true;
+        }
+
+        default:
+            // Everything else: cancelled
+            PutString(FSTR("ABBR"));
+
+            return false;
     }
-    // Everything else: cancelled
-    PutString(FSTR("ABBR"));
-
-    return false;
 }
 
 
