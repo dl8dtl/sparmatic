@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 886643949a1c 2017/03/18 21:31:44 "Joerg $ */
+/* $Id: comet.c,v 218f61e0005a 2017/03/18 21:41:22 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -165,6 +165,7 @@ static bool Menu_ProgSubA(uint8_t);
 static bool Menu_ProgSubB(uint8_t);
 static bool Menu_Reset(uint8_t);
 static bool Menu_ResetSub1(uint8_t);
+static bool Menu_ResetSub2(uint8_t);
 static bool Menu_Temp(uint8_t);
 static bool Menu_TempSub1(uint8_t);
 static bool Menu_TempSub2(uint8_t);
@@ -324,6 +325,7 @@ const __flash struct menuentry MenuTable[] =
     { .main = 0x04, .sub = 0x31, .func = Menu_FensSub11 }, // time resume ID79
     { .main = 0x05, .sub = 0x00, .func = Menu_Reset     }, // RESET      ID80
     { .main = 0x05, .sub = 0x10, .func = Menu_ResetSub1 }, // OK         ID81
+    { .main = 0x05, .sub = 0x20, .func = Menu_ResetSub2 }, // DONE
     { .main = 0x06, .sub = 0x00, .func = Menu_Adapt     }, // ADAP       ID82
     { .main = 0x06, .sub = 0x10, .func = Menu_AdaptSub1 }, // ADAP       ID83
     { .main = 0x07, .sub = 0x00, .func = Menu_Urla      }, // URLA       ID84
@@ -2517,6 +2519,31 @@ bool Menu_Reset(uint8_t task __attribute__((unused)))
 bool Menu_ResetSub1(uint8_t task __attribute__((unused)))
 {
     PutString(FSTR(" OK "));
+
+    return false;
+}
+
+bool Menu_ResetSub2(uint8_t task)
+{
+    if (task == 3)
+    {
+        // Enter
+        // Clear eeprom
+        uint8_t *eeptr;
+        size_t i;
+        for (i = 0, eeptr = (uint8_t *)&eemem; i < sizeof(eemem); i++, eeptr++)
+            eeprom_write_byte(eeptr, 0xFF);
+        // Clear in-memory programming data
+        ReadBack_Progdata();
+        // Restart from scratch
+        ValveTop = 0; // force adaptation
+        StartMain();
+        Status0 &= ~MenuOn;
+
+        return false;
+    }
+    // Everything else: cancelled
+    PutString(FSTR("ABBR"));
 
     return false;
 }
