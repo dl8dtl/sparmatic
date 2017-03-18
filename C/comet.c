@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 5b012f290d35 2017/03/18 20:58:15 "Joerg $ */
+/* $Id: comet.c,v 9305b6fc779e 2017/03/18 21:08:35 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2831,61 +2831,64 @@ void Clock(void)
         TimeAdjust = 35; // TimeAdjust interval counter
     }
     TOD.Minutes++;
+    if (TOD.Minutes == 60)
+    {
+        TOD.Minutes = 0;
+        TOD.Hours++;
+        // if DST toggle has already done, skip DST check
+        if (!(Status1 & DST_OnOff))
+        {
+            if (TOD.Days >= 24 && // last week on month?
+                TOD.WDays == 6) // last sunday on month?
+                switch (TOD.Months)
+                {
+                    // October?
+                    case 9:
+                        // Summer_Winter
+                        if (TOD.Hours == 3)
+                        {
+                            TOD.Hours--;
+                            Status1 |= DST_OnOff;
+                        }
+                        break;
+
+                        // March?
+                    case 2:
+                        // Winter_Summer
+                        if (TOD.Hours == 2)
+                        {
+                            TOD.Hours++;
+                            Status1 |= DST_OnOff;
+                        }
+                        break;
+                }
+        }
+        if (TOD.Hours == 24)
+        {
+            TOD.Hours = 0;
+            Status1 &= ~DST_OnOff;
+            TOD.Days++;
+            if (++TOD.WDays == 7)
+                TOD.WDays = 0;
+            if (OpMode == AUTO)
+                Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
+            ClearWeekDays();
+            PutWeekDay(TOD.WDays | 0x80, 3);
+            if (TOD.Days == MonthLastDay())
+            {
+                TOD.Days = 0;
+                if (++TOD.Months == 12)
+                {
+                    TOD.Months = 0;
+                    TOD.Years++;
+                }
+            }
+        }
+    }
+
     if (OpMode == AUTO && TOD.Minutes % 10 == 0)
         // new ten minute interval, see whether we have to switch modes
         EvalAutoMode();
-    if (TOD.Minutes != 60)
-        return;
-    TOD.Minutes = 0;
-    TOD.Hours++;
-    // if DST toggle has already done, skip DST check
-    if (!(Status1 & DST_OnOff))
-    {
-        if (TOD.Days >= 24 && // last week on month?
-            TOD.WDays == 6) // last sunday on month?
-            switch (TOD.Months)
-            {
-                // October?
-                case 9:
-                    // Summer_Winter
-                    if (TOD.Hours == 3)
-                    {
-                        TOD.Hours--;
-                        Status1 |= DST_OnOff;
-                    }
-                    break;
-
-                // March?
-                case 2:
-                    // Winter_Summer
-                    if (TOD.Hours == 2)
-                    {
-                        TOD.Hours++;
-                        Status1 |= DST_OnOff;
-                    }
-                    break;
-            }
-    }
-    if (TOD.Hours != 24)
-        return;
-    TOD.Hours = 0;
-    Status1 &= ~DST_OnOff;
-    TOD.Days++;
-    if (++TOD.WDays == 7)
-        TOD.WDays = 0;
-    if (OpMode == AUTO)
-        Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
-    ClearWeekDays();
-    PutWeekDay(TOD.WDays | 0x80, 3);
-    if (TOD.Days == MonthLastDay())
-    {
-        TOD.Days = 0;
-        if (++TOD.Months == 12)
-        {
-            TOD.Months = 0;
-            TOD.Years++;
-        }
-    }
 }
 
 // w=(d+MonthGauss+y+(y/4)+(c/4)+5*c) mod7 // Sunday=0...Saturday=6
