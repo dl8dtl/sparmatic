@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 027fbd9f1f95 2017/03/18 21:59:14 "Joerg $ */
+/* $Id: comet.c,v 69eaa3d77268 2017/03/18 21:59:37 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2182,6 +2182,7 @@ bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
         Status0 &= ~MenuWork;
         ClearColon();
         MenuLow = 0;
+        eeprom_write_word((uint16_t *)&eemem.temperatures.offset, (uint16_t)TempOffset);
 
         return true;
     }
@@ -2589,6 +2590,7 @@ bool Menu_TempSub1(uint8_t task)
         Status0 &= ~MenuWork;
         ClearPoint();
         PutSymbol(LCD_InHouse_CLR, 3);
+        eeprom_write_word(&eemem.temperatures.inhouse, InHouseTemp);
         // IncSub
         MenuLow = (MenuLow & 0xF0) + 0x10;
 
@@ -2628,6 +2630,7 @@ bool Menu_TempSub2(uint8_t task)
         Status0 &= ~MenuWork;
         ClearPoint();
         PutSymbol(LCD_OffHouse_CLR, 3);
+        eeprom_write_word(&eemem.temperatures.offhouse, OffHouseTemp);
         // IncSub
         MenuLow = (MenuLow & 0xF0) + 0x10;
 
@@ -2666,6 +2669,7 @@ bool Menu_TempSub3(uint8_t task)
         Status0 &= ~MenuWork;
         MenuLow = 0;
         ClearPoint();
+        eeprom_write_word(&eemem.temperatures.night, NightTemp);
         PutSymbol(LCD_Moon_CLR, 3);
 
         return true;
