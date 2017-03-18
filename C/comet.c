@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 669a81738c3a 2017/03/18 22:09:15 "Joerg $ */
+/* $Id: comet.c,v b9c40ac20c83 2017/03/18 22:10:34 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -746,7 +746,7 @@ int main(void)
 
 static void Store_Time(void)
 {
-    eeprom_write_block(&eemem.tod, &TOD.Minutes, sizeof(eemem.tod));
+    eeprom_write_block(&TOD.Minutes, &eemem.tod, sizeof(eemem.tod));
 }
 
 static void Store_Valvestate(void)
