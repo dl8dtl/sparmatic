@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v fd181f7f07fd 2017/03/18 21:21:48 "Joerg $ */
+/* $Id: comet.c,v 33f828cd0cb2 2017/03/18 21:25:01 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -353,6 +353,7 @@ static void ReadButtons(void);
 static void Adaptation(void);
 static void Measure_Motor_Current(void);
 static void Store_Time(void);
+static void Store_Valvestate(void);
 static void ReadBack_Time(void);
 static void ReadBack_Progdata(void);
 static void ReadBack_Valvestate(void);
@@ -529,6 +530,7 @@ ISR(PCINT0_vect)
         PORTB &= ~_BV(7);
         PORTB &= ~_BV(0);
         Store_Time();
+        Store_Valvestate();
         Clear_Screen();
 
         PutString(FSTR("OFF "));
@@ -741,6 +743,12 @@ int main(void)
 static void Store_Time(void)
 {
     eeprom_write_block(&eemem.tod, &TOD.Minutes, sizeof(eemem.tod));
+}
+
+static void Store_Valvestate(void)
+{
+    eeprom_write_word(&eemem.valvestate.position, Position);
+    eeprom_write_word(&eemem.valvestate.valvetop, ValveTop);
 }
 
 static void ReadBack_Time(void)
