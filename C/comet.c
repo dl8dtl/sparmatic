@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ccf0525f9400 2017/03/18 18:20:23 "Joerg $ */
+/* $Id: comet.c,v e784d1911f19 2017/03/18 18:24:23 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -2415,6 +2415,7 @@ bool Menu_TempSub1(uint8_t task)
         // InHouseEnter
         Status0 &= ~MenuWork;
         ClearPoint();
+        PutSymbol(LCD_InHouse_CLR, 3);
         // IncSub
         MenuLow = (MenuLow & 0xF0) + 0x10;
 
@@ -2453,6 +2454,7 @@ bool Menu_TempSub2(uint8_t task)
         // Enter
         Status0 &= ~MenuWork;
         ClearPoint();
+        PutSymbol(LCD_OffHouse_CLR, 3);
         // IncSub
         MenuLow = (MenuLow & 0xF0) + 0x10;
 
@@ -2491,6 +2493,7 @@ bool Menu_TempSub3(uint8_t task)
         Status0 &= ~MenuWork;
         MenuLow = 0;
         ClearPoint();
+        PutSymbol(LCD_Moon_CLR, 3);
 
         return true;
     }
