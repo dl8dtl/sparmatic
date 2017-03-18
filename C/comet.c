@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v bb0629f0e528 2017/03/18 22:07:45 "Joerg $ */
+/* $Id: comet.c,v 669a81738c3a 2017/03/18 22:09:15 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -374,6 +374,8 @@ static void Clear_Bargraph(void);
 static uint8_t CalcDayOfWeek(void);
 static uint8_t MonthLastDay(void);
 static void PutSymbol(uint8_t pos, uint8_t buffno);
+static void ClearWeekDays(void);
+static void PutWeekDay(uint8_t pos, uint8_t buffno);
 
 /* --- From LCDTable.inc ----------------------------------------- */
 
