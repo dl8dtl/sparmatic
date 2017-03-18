@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v ea47be591271 2017/03/18 18:37:13 "Joerg $ */
+/* $Id: comet.c,v df05b48a511b 2017/03/18 20:06:42 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1261,10 +1261,12 @@ void PutSymbol(uint8_t pos, uint8_t buffno)
 }
 
 // set colon between segment 1 and 2
-void SetColon(void)
+void SetColon(uint8_t buffno)
 {
-    DisplayBuffer1[16] |= 0x80;
-    DisplayBuffer2[16] |= 0x80;
+    if (buffno & 1)
+        DisplayBuffer1[16] |= 0x80;
+    if (buffno & 2)
+        DisplayBuffer2[16] |= 0x80;
 }
 
 // clear colon between segment 1 and 2
@@ -2095,7 +2097,7 @@ bool Menu_OffsSub1(uint8_t task __attribute__((unused)))
         return true;
     }
 
-    SetColon();
+    SetPoint();
     PutFormatted(FSTR("%+03d" DEGREE), TempOffset);
 
     return false;
@@ -2148,7 +2150,6 @@ static void CopyTimerBlock(uint8_t block)
 
 static bool MenuProg_Com(uint8_t task)
 {
-    SetColon();
     uint8_t menu_num = MenuLow - 0x11;
     uint8_t x = ((menu_num & 0xF0) >> 4) * 9 /* number of timers per Day */;
     uint8_t *BarBase = DailyTimer + x;
@@ -2224,6 +2225,7 @@ static bool MenuProg_Com(uint8_t task)
             break;
     }
     *p = y;
+    SetColon(1);
     if (y == 255)
     {
         // TimerInactive
@@ -2693,7 +2695,7 @@ bool Menu_ZeitSub4(uint8_t task)
         return true;
     }
     PutFormatted(FSTR("%2d%02d\n  %02d"), TOD.Hours, TOD.Minutes, TOD.Minutes);
-    SetColon();
+    SetColon(3);
 
     return false;
 }
@@ -2729,7 +2731,7 @@ bool Menu_ZeitSub5(uint8_t task)
         return true;
     }
     PutFormatted(FSTR("%2d%02d\n%2d  "), TOD.Hours, TOD.Minutes, TOD.Hours);
-    SetColon();
+    SetColon(3);
 
     return false;
 }
