@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 238705da624a 2017/03/18 22:53:55 "Joerg $ */
+/* $Id: comet.c,v 9dd1b0221af6 2017/03/18 23:00:47 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1926,6 +1926,11 @@ static void MenuModeOff(void)
     ClearWeekDays();
     PutWeekDay(TOD.WDays | 0x80, 3);
     ClearSymbols();
+    if (OpMode == AUTO)
+    {
+        CurrAutoMode = OFF;
+        EvalAutoMode();
+    }
 }
 
 void User_Action(void)
@@ -2160,8 +2165,6 @@ bool Menu_ModeSub21(uint8_t task __attribute__((unused)))
     PutSymbol(LCD_Manu_CLR, 3);
     PutSymbol(LCD_Auto_SET, 3);
     OpMode = AUTO;
-    CurrAutoMode = OFF;
-    EvalAutoMode();
     Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
     MenuModeOff();
 
