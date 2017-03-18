@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 788bea6cf58a 2017/03/18 20:13:58 "Joerg $ */
+/* $Id: comet.c,v e1d750787624 2017/03/18 20:32:41 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -346,6 +346,8 @@ static void Adaptation(void);
 static void Measure_Motor_Current(void);
 static void Store_Time(void);
 static void ReadBack_Time(void);
+static void ReadBack_Progdata(void);
+static void ReadBack_Valvestate(void);
 static void Show_Current_Temperature(void);
 static void Show_Current_Time(void);
 static void User_Action(void);
@@ -649,6 +651,8 @@ void ioinit(void)
     //DebugPort &= ~Debug1;
 
     ReadBack_Time();
+    ReadBack_Progdata();
+    ReadBack_Valvestate();
 
     sei();
 }
@@ -739,17 +743,49 @@ static void ReadBack_Time(void)
         memset(&TOD, 0, sizeof(TOD));
 }
 
+static void ReadBack_Progdata(void)
+{
+    eeprom_read_block(DailyTimer, &eemem.dailytimer, sizeof(eemem.dailytimer));
+    for (uint8_t tmrno = 0; tmrno < NTIMERS; tmrno++)
+        if (DailyTimer[TIMPERDAY * tmrno] == 255)
+            // EEPROM data for this timer unset
+            memset(&DailyTimer[TIMPERDAY * tmrno], 0, TIMPERDAY);
+}
+
+static void ReadBack_Valvestate(void)
+{
+    // Try reading back valve state from EEPROM.
+    // If data have been found, the initial adaptation step
+    // can be skipped.  Invalidate EEPROM data in that case,
+    // so they are only trusted if actually saved before
+    // shutdown.
+    Position = eeprom_read_word(&eemem.valvestate.position);
+    ValveTop = eeprom_read_word(&eemem.valvestate.valvetop);
+    if (Position == 0xFFFF)
+        Position = 0;
+    else
+        eeprom_write_word(&eemem.valvestate.position, 0xFFFF);
+    if (ValveTop == 0xFFFF)
+        ValveTop = 0;
+    else
+        eeprom_write_word(&eemem.valvestate.valvetop, 0xFFFF);
+}
+
+
 static void StartMain(void)
 {
     BeepPulseLen = 5;
     BeepLen = 200;
     TIMSK0 |= (1<<OCIE0A);
     while (TIMSK0 & (1<<OCIE0A)) {}
-    // start Adaptation
-    FreeMotorCurrent = 0xFF;
-    Position = 0;
-    AdaptStep = 0;
-    Status0 |= Adapt;
+    // start Adaptation unless current valvedata are available
+    if (ValveTop == 0)
+    {
+        FreeMotorCurrent = 0xFF;
+        Position = 0;
+        AdaptStep = 0;
+        Status0 |= Adapt;
+    }
     OpMode = MANU;
     PutSymbol(LCD_Manu_SET, 3);
 }
@@ -1920,6 +1956,7 @@ bool Menu_Adapt(uint8_t task __attribute__((unused)))
 
 bool Menu_AdaptSub1(uint8_t task __attribute__((unused)))
 {
+    ValveTop = 0; // force adaptation
     StartMain();
     Status0 &= ~MenuOn;
 
@@ -2151,7 +2188,7 @@ static void CopyTimerBlock(uint8_t block)
 static bool MenuProg_Com(uint8_t task)
 {
     uint8_t menu_num = MenuLow - 0x11;
-    uint8_t x = ((menu_num & 0xF0) >> 4) * 9 /* number of timers per Day */;
+    uint8_t x = ((menu_num & 0xF0) >> 4) * TIMPERDAY /* number of timers per Day */;
     uint8_t *BarBase = DailyTimer + x;
     uint8_t *p = &BarBase[menu_num & 0x0F];
     if ((MenuLow & 1) == 0)
@@ -2196,6 +2233,8 @@ static bool MenuProg_Com(uint8_t task)
                 // check for last subsub menu (night timer)
                 if ((MenuLow & 0x0F) == 9)
                 {
+                    // save state to EEPROM
+                    eeprom_write_block(BarBase, eemem.dailytimer + x, TIMPERDAY);
                     if ((MenuLow & 0xF0) >= 0x80)
                         // if block menu, then copy block data to selected days
                         CopyTimerBlock(MenuLow & 0xF0);
