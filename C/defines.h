@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v a8db94759ce1 2017/03/15 19:34:32 "Joerg $ */
+/* $Id: defines.h,v 788bea6cf58a 2017/03/18 20:13:58 "Joerg $ */
 
 #include <stdint.h>
 
@@ -201,12 +201,12 @@ extern uint16_t WindowOpenTemp;
 extern uint8_t DisplayBuffer1[20];
 extern uint8_t DisplayBuffer2[20];
 
-extern uint8_t DailyTimer[90];
 /* 9 timers for each day (Hot,Cold,Hot,Cold,Hot,Cold,Hot,Cold,Night),
  * 7 days, 1-5 / 1-6 / 1-7 */
+#define NTIMERS 10
+#define TIMPERDAY 9
+extern uint8_t DailyTimer[TIMPERDAY * NTIMERS];
 
-
-extern uint8_t DebugBuffer[256];
 
 enum fuzzy
 {
@@ -275,5 +275,16 @@ enum user_if_modes
 
 struct eedata
 {
-    uint8_t Minutes, Hours, Days, Months, Years;
+    uint8_t reserved[16]; // avoid using address 0
+    struct
+    {
+        uint8_t Minutes, Hours, Days, Months, Years;
+    }
+    tod;
+    struct
+    {
+        uint16_t position, valvetop;
+    }
+    valvestate;
+    uint8_t dailytimer[TIMPERDAY * NTIMERS];
 };

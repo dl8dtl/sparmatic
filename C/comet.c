@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v df05b48a511b 2017/03/18 20:06:42 "Joerg $ */
+/* $Id: comet.c,v 788bea6cf58a 2017/03/18 20:13:58 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -99,7 +99,7 @@ uint16_t WindowOpenTemp;
 uint8_t DisplayBuffer1[20];
 uint8_t DisplayBuffer2[20];
 
-uint8_t DailyTimer[90];
+uint8_t DailyTimer[TIMPERDAY * NTIMERS];
 
 uint8_t DebugBuffer[256];
 
@@ -728,12 +728,12 @@ int main(void)
 
 static void Store_Time(void)
 {
-    eeprom_write_block(&eemem.Minutes, &TOD.Minutes, 5);
+    eeprom_write_block(&eemem.tod, &TOD.Minutes, sizeof(eemem.tod));
 }
 
 static void ReadBack_Time(void)
 {
-    eeprom_read_block(&TOD.Minutes, &eemem.Minutes, 5);
+    eeprom_read_block(&TOD.Minutes, &eemem.tod, sizeof(eemem.tod));
     if (TOD.Minutes == 255)
         // uninitialized EEPROM, clear TOD
         memset(&TOD, 0, sizeof(TOD));
