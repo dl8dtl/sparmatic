@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v fe5020ca85c5 2017/03/19 20:37:28 "Joerg $ */
+/* $Id: comet.c,v 58c39a0bc417 2017/03/19 20:38:59 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -25,6 +25,7 @@
 #include "defines.h"
 
 #define DEGREE "@"  // used as degree symbol
+#define DELTA  ";"  // used as greek Delta
 
 /* Helper macro for flash strings */
 #define FSTR(s) ({static const __flash char __c[] = (s); &__c[0];})
@@ -2069,7 +2070,7 @@ bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 bool Menu_Dbg_5(uint8_t task __attribute__((unused)))
 {
     SetColon(2);
-    PutFormatted(FSTR(";TMP\n%02X%02X"), (unsigned)DeltaTemp1, (unsigned)DeltaTemp2);
+    PutFormatted(FSTR(DELTA "TMP\n%02X%02X"), (unsigned)DeltaTemp1, (unsigned)DeltaTemp2);
 
     return false;
 }
