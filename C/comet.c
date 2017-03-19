@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 9dd1b0221af6 2017/03/18 23:00:47 "Joerg $ */
+/* $Id: comet.c,v fe5020ca85c5 2017/03/19 20:37:28 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -131,6 +131,7 @@ static bool Menu_Dbg_1(uint8_t);
 static bool Menu_Dbg_2(uint8_t);
 static bool Menu_Dbg_3(uint8_t);
 static bool Menu_Dbg_4(uint8_t);
+static bool Menu_Dbg_5(uint8_t);
 static bool Menu_Dbg_FW(uint8_t);
 static bool Menu_Debug(uint8_t);
 static bool Menu_Fens(uint8_t);
@@ -342,6 +343,7 @@ const __flash struct menuentry MenuTable[] =
     { .main = 0x0A, .sub = 0x30, .func = Menu_Dbg_2     }, // Olim       ID95
     { .main = 0x0A, .sub = 0x40, .func = Menu_Dbg_3     }, // VTop
     { .main = 0x0A, .sub = 0x50, .func = Menu_Dbg_4     }, // RWay
+    { .main = 0x0A, .sub = 0x60, .func = Menu_Dbg_5     }, // DTemp
 
     { .main = 0xFF, .sub = 0xFF, .func = 0},   // menu end
 };
@@ -432,7 +434,7 @@ const __flash uint16_t LCD_Character_Table[] =
     0b0000000011111111,  // 8
     0b0000000011101111,  // 9
     0b0000000011000000,  // :  used as '-'
-    0b0010001000000000,  // ;
+    0b0010010000001110,  // ;  used as Delta
     0b0000110000000000,  // <
     0b0001001011000000,  // =  used as '+'
     0b0001000100000000,  // >
@@ -2058,13 +2060,23 @@ bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
 
 bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 {
+    ClearColon();
     PutFormatted(FSTR("RWAY\n%4d"), RegWay);
+
+    return false;
+}
+
+bool Menu_Dbg_5(uint8_t task __attribute__((unused)))
+{
+    SetColon(2);
+    PutFormatted(FSTR(";TMP\n%02X%02X"), (unsigned)DeltaTemp1, (unsigned)DeltaTemp2);
 
     return false;
 }
 
 bool Menu_Dbg_FW(uint8_t task __attribute__((unused)))
 {
+    ClearColon();
     PutFormatted(FSTR("FIRM\nV%03d"), FW_Version);
 
     return false;
