@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v fd181f7f07fd 2017/03/18 21:21:48 "Joerg $ */
+/* $Id: defines.h,v 0e7cfa65d7f0 2017/03/23 21:37:41 "Joerg $ */
 
 #include <stdint.h>
 
@@ -169,7 +169,7 @@ struct time
     uint8_t Years;
     uint8_t WDays;
 };
-extern struct time TOD;
+extern struct time TOD, Urlaub;
 extern uint8_t UserDisplay;
 extern uint16_t iNTCV;
 extern uint8_t PSC1;

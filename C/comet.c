@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 58c39a0bc417 2017/03/19 20:38:59 "Joerg $ */
+/* $Id: comet.c,v 0e7cfa65d7f0 2017/03/23 21:37:41 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -57,7 +57,7 @@ uint8_t AdaptStep;
 uint8_t MotorCurrent;
 uint8_t FreeMotorCurrent;
 uint8_t ADCPrescaler;
-struct time TOD;
+struct time TOD, Urlaub;
 uint8_t UserDisplay;
 uint16_t iNTCV;
 uint8_t PSC1 = 4;
@@ -174,6 +174,9 @@ static bool Menu_TempSub2(uint8_t);
 static bool Menu_TempSub3(uint8_t);
 static bool Menu_Urla(uint8_t);
 static bool Menu_UrlaSub1(uint8_t);
+static bool Menu_UrlaSub2(uint8_t);
+static bool Menu_UrlaSub3(uint8_t);
+static bool Menu_UrlaSub4(uint8_t);
 static bool Menu_Zeit(uint8_t);
 static bool Menu_ZeitSub1(uint8_t);
 static bool Menu_ZeitSub2(uint8_t);
@@ -331,9 +334,10 @@ const __flash struct menuentry MenuTable[] =
     { .main = 0x06, .sub = 0x00, .func = Menu_Adapt     }, // ADAP       ID82
     { .main = 0x06, .sub = 0x10, .func = Menu_AdaptSub1 }, // ADAP       ID83
     { .main = 0x07, .sub = 0x00, .func = Menu_Urla      }, // URLA       ID84
-    { .main = 0x07, .sub = 0x10, .func = Menu_UrlaSub1  }, // set date   ID85
-    { .main = 0x07, .sub = 0x20, .func = Menu_UrlaSub1  }, // set hour   ID86
-    { .main = 0x07, .sub = 0x30, .func = Menu_UrlaSub1  }, // set temp   ID87
+    { .main = 0x07, .sub = 0x10, .func = Menu_UrlaSub1  },
+    { .main = 0x07, .sub = 0x20, .func = Menu_UrlaSub2  },
+    { .main = 0x07, .sub = 0x30, .func = Menu_UrlaSub3  },
+    { .main = 0x07, .sub = 0x40, .func = Menu_UrlaSub4  },
     { .main = 0x08, .sub = 0x00, .func = Menu_Inst      }, // INST       ID88
     { .main = 0x08, .sub = 0x10, .func = Menu_InstSub1  }, // <<<<       ID89
     { .main = 0x09, .sub = 0x00, .func = Menu_Offs      }, // OFFS       ID90
@@ -374,8 +378,8 @@ static void StartMain(void);
 static void Regulate(void);
 static void PutBargraph(uint8_t, uint8_t);
 static void Clear_Bargraph(void);
-static uint8_t CalcDayOfWeek(void);
-static uint8_t MonthLastDay(void);
+static uint8_t CalcDayOfWeek(struct time *clock);
+static uint8_t MonthLastDay(struct time *clock);
 static void PutSymbol(uint8_t pos, uint8_t buffno);
 static void ClearWeekDays(void);
 static void PutWeekDay(uint8_t pos, uint8_t buffno);
@@ -830,7 +834,7 @@ static void StartMain(void)
         UserDisplay = 0;
         DisplayCT = 0;
         DispTimer = 0;
-        uint8_t dow = CalcDayOfWeek();
+        uint8_t dow = CalcDayOfWeek(&TOD);
         ClearWeekDays();
         PutWeekDay(dow | 0x80, 3);
         DisplayBuffer1[0] |= 1; // switch on hour bar
@@ -1496,7 +1500,7 @@ void Adaptation(void)
             UserDisplay = 0;
             DisplayCT = 0;
             DispTimer = 0;
-            uint8_t dow = CalcDayOfWeek();
+            uint8_t dow = CalcDayOfWeek(&TOD);
             ClearWeekDays();
             PutWeekDay(dow | 0x80, 3);
             DisplayBuffer1[0] |= 1; // switch on hour bar
@@ -1725,16 +1729,32 @@ static void EvalAutoMode(void)
         switch (newMode)
         {
             case INHOUSE:
-                PutSymbol(LCD_InHouse_SET, 3);
-                SetTemp = InHouseTemp;
+                if (Urlaub.Years && Urlaub.Months && Urlaub.Days)
+                {
+                    // vacation mode, restrict temperature to offhouse
+                    PutSymbol(LCD_Case_SET, 3);
+                    PutSymbol(LCD_OffHouse_SET, 3);
+                    SetTemp = OffHouseTemp;
+                }
+                else
+                {
+                    PutSymbol(LCD_InHouse_SET, 3);
+                    SetTemp = InHouseTemp;
+                }
                 break;
 
             case OFFHOUSE:
+                if (Urlaub.Years && Urlaub.Months && Urlaub.Days)
+                    // vacation mode
+                    PutSymbol(LCD_Case_SET, 3);
                 PutSymbol(LCD_OffHouse_SET, 3);
                 SetTemp = OffHouseTemp;
                 break;
 
             case NIGHT:
+                if (Urlaub.Years && Urlaub.Months && Urlaub.Days)
+                    // vacation mode
+                    PutSymbol(LCD_Case_SET, 3);
                 PutSymbol(LCD_Moon_SET, 3);
                 SetTemp = NightTemp;
                 break;
@@ -2731,6 +2751,145 @@ bool Menu_UrlaSub1(uint8_t task __attribute__((unused)))
     return false;
 }
 
+bool Menu_UrlaSub2(uint8_t task)
+{
+    Status0 |= MenuWork;
+    switch (task)
+    {
+    case 1:
+        // YearsMinus
+        if (Urlaub.Years == 0)
+            Urlaub.Years = 99;
+        else
+            Urlaub.Years--;
+        break;
+
+    case 2:
+        // YearsPlus
+        if (Urlaub.Years == 99)
+            Urlaub.Years = 0;
+        else
+            Urlaub.Years++;
+        break;
+
+    case 3:
+        // YearsEnter
+        Status0 &= ~MenuWork;
+
+        if (Urlaub.Years == 0)
+        {
+            // vacation function turned off
+            ClearPoint();
+            uint8_t toddow = CalcDayOfWeek(&TOD);
+            ClearWeekDays();
+            PutWeekDay(toddow | 0x80, 3);
+            MenuLow = 0;
+        }
+        else
+        {
+            // vacation function enabled, proceed to next submenu
+            MenuLow = (MenuLow & 0xF0) + 0x10;
+        }
+
+        return true;
+    }
+
+    if (Urlaub.Years == 0)
+    {
+        PutString(FSTR("URLA\nOFF "));
+    }
+    else
+    {
+        PutFormatted(FSTR("20%02d\nURLA"), Urlaub.Years);
+
+        uint8_t dow = CalcDayOfWeek(&Urlaub);
+        ClearWeekDays();
+        PutWeekDay(dow | 0x80, 3);
+    }
+
+    return false;
+}
+
+// set Months value
+bool Menu_UrlaSub3(uint8_t task)
+{
+    Status0 |= MenuWork;
+    switch (task)
+    {
+    case 1:
+        // MonthsMinus
+        if (Urlaub.Months == 0)
+            Urlaub.Months = 11;
+        else
+            Urlaub.Months--;
+        break;
+
+    case 2:
+        // MonthsPlus
+        if (Urlaub.Months == 11)
+            Urlaub.Months = 0;
+        else
+            Urlaub.Months++;
+        break;
+
+    case 3:
+        // MonthsEnter
+        Status0 &= ~MenuWork;
+        // IncSub[4]
+        MenuLow = (MenuLow & 0xF0) + 0x10;
+
+        return true;
+    }
+    PutFormatted(FSTR("%02d%02d\n%02dLA"), Urlaub.Days + 1, Urlaub.Months + 1, Urlaub.Days + 1);
+    SetPoint();
+
+    uint8_t dow = CalcDayOfWeek(&Urlaub);
+    ClearWeekDays();
+    PutWeekDay(dow | 0x80, 3);
+
+    return false;
+}
+
+// set Days value
+bool Menu_UrlaSub4(uint8_t task)
+{
+    Status0 |= MenuWork;
+    switch (task)
+    {
+    case 1:
+        // DaysMinus
+        if (Urlaub.Days == 0)
+            Urlaub.Days = MonthLastDay(&Urlaub);
+        else
+            Urlaub.Days--;
+        break;
+
+    case 2:
+        // DaysPlus
+        if (++Urlaub.Days == MonthLastDay(&Urlaub))
+            Urlaub.Days = 0;
+        break;
+
+    case 3:
+        // DaysEnter
+        Status0 &= ~MenuWork;
+        ClearPoint();
+        uint8_t toddow = CalcDayOfWeek(&TOD);
+        ClearWeekDays();
+        PutWeekDay(toddow | 0x80, 3);
+        MenuLow = 0;
+
+        return true;
+    }
+    PutFormatted(FSTR("%02d%02d\nUR%02d"), Urlaub.Days + 1, Urlaub.Months + 1, Urlaub.Months + 1);
+
+    uint8_t dow = CalcDayOfWeek(&Urlaub);
+    ClearWeekDays();
+    PutWeekDay(dow | 0x80, 3);
+
+    return false;
+}
+
 bool Menu_Zeit(uint8_t task __attribute__((unused)))
 {
     PutString(FSTR("ZEIT"));
@@ -2770,7 +2929,7 @@ bool Menu_ZeitSub1(uint8_t task)
     }
     PutFormatted(FSTR("20%02d\n    "), TOD.Years);
 
-    uint8_t dow = CalcDayOfWeek();
+    uint8_t dow = CalcDayOfWeek(&TOD);
     ClearWeekDays();
     PutWeekDay(dow | 0x80, 3);
 
@@ -2810,7 +2969,7 @@ bool Menu_ZeitSub2(uint8_t task)
     PutFormatted(FSTR("%02d%02d\n%02d  "), TOD.Days + 1, TOD.Months + 1, TOD.Days + 1);
     SetPoint();
 
-    uint8_t dow = CalcDayOfWeek();
+    uint8_t dow = CalcDayOfWeek(&TOD);
     ClearWeekDays();
     PutWeekDay(dow | 0x80, 3);
 
@@ -2826,14 +2985,14 @@ bool Menu_ZeitSub3(uint8_t task)
     case 1:
         // DaysMinus
         if (TOD.Days == 0)
-            TOD.Days = MonthLastDay();
+            TOD.Days = MonthLastDay(&TOD);
         else
             TOD.Days--;
         break;
 
     case 2:
         // DaysPlus
-        if (++TOD.Days == MonthLastDay())
+        if (++TOD.Days == MonthLastDay(&TOD))
             TOD.Days = 0;
         break;
 
@@ -2848,7 +3007,7 @@ bool Menu_ZeitSub3(uint8_t task)
     }
     PutFormatted(FSTR("%02d%02d\n  %02d"), TOD.Days + 1, TOD.Months + 1, TOD.Months + 1);
 
-    uint8_t dow = CalcDayOfWeek();
+    uint8_t dow = CalcDayOfWeek(&TOD);
     ClearWeekDays();
     PutWeekDay(dow | 0x80, 3);
 
@@ -3002,7 +3161,7 @@ void Clock(void)
                 Show_TimerSetBar(DailyTimer + TOD.WDays * 9, 0);
             ClearWeekDays();
             PutWeekDay(TOD.WDays | 0x80, 3);
-            if (TOD.Days == MonthLastDay())
+            if (TOD.Days == MonthLastDay(&TOD))
             {
                 TOD.Days = 0;
                 if (++TOD.Months == 12)
@@ -3014,6 +3173,19 @@ void Clock(void)
         }
     }
 
+    if (Urlaub.Years && Urlaub.Months && Urlaub.Days)
+    {
+        // vacation mode active, see whether it needs to be turned off
+        if (Urlaub.Years == TOD.Years &&
+            Urlaub.Months == TOD.Months &&
+            Urlaub.Days == TOD.Days)
+        {
+            Urlaub.Years = 0;
+            Urlaub.Months = 0;
+            Urlaub.Days = 0;
+        }
+    }
+
     if (OpMode == AUTO && TOD.Minutes % 10 == 0)
         // new ten minute interval, see whether we have to switch modes
         EvalAutoMode();
@@ -3022,17 +3194,17 @@ void Clock(void)
 // w=(d+MonthGauss+y+(y/4)+(c/4)+5*c) mod7 // Sunday=0...Saturday=6
 // d=1..31 // y=Year ..nn // c= Year nn..
 // Jan. + Feb. -> y=y-1
-uint8_t CalcDayOfWeek(void)
+uint8_t CalcDayOfWeek(struct time *clock)
 {
     static const __flash uint8_t MonthGauss[] =
         {
             28,31,2,5,7,10,12,15,18,20,23,25
         };
-    uint8_t mon = MonthGauss[TOD.Months];
-    uint8_t d = TOD.Days + 1;
-    uint8_t y = TOD.Years;
+    uint8_t mon = MonthGauss[clock->Months];
+    uint8_t d = clock->Days + 1;
+    uint8_t y = clock->Years;
     // if months are 0 or 1 (January or February), decrement y
-    if (TOD.Months < 2)
+    if (clock->Months < 2)
         y--;
     d += mon; // add GaussMonths
     d += y; // add Year
@@ -3046,21 +3218,21 @@ uint8_t CalcDayOfWeek(void)
         d = 6;
     else
         d -= 1;
-    TOD.WDays = d;
+    clock->WDays = d;
 
-    return TOD.WDays;
+    return clock->WDays;
 }
 
 // look for last Day of a month
-uint8_t MonthLastDay(void)
+uint8_t MonthLastDay(struct time *clock)
 {
     static const __flash uint8_t MonthDayNo[] =
         {
             31,28,31,30,31,30,31,31,30,31,30,31
         };
-    uint8_t d = MonthDayNo[TOD.Months];
-    if (TOD.Years % 4 == 0 && // check for leap year
-        TOD.Months == 1) // if month is february, add 1 day
+    uint8_t d = MonthDayNo[clock->Months];
+    if (clock->Years % 4 == 0 && // check for leap year
+        clock->Months == 1) // if month is february, add 1 day
         d++;
     return d;
 }

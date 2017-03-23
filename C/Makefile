@@ -7,8 +7,8 @@ MCU = atmega169p
 
 CDEFS += -DF_CPU=8E6
 
-CFLAGS = -Os -g -std=gnu99 -mmcu=$(MCU) -I. -Wall -Wextra $(CDEFS)
-CXXFLAGS = -Os -g -std=c++11 -mmcu=$(MCU) -I. -Wall -Wextra $(CDEFS)
+CFLAGS = -Os -gdwarf-3 -std=gnu99 -mmcu=$(MCU) -I. -Wall -Wextra $(CDEFS)
+CXXFLAGS = -Os -gdwarf-3 -std=c++11 -mmcu=$(MCU) -I. -Wall -Wextra $(CDEFS)
 
 OBJS = comet.o
 LIBS = -lm
