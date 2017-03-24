@@ -1,12 +1,21 @@
 %%
 %% Template LaTeX2e file
 %%
-\documentclass[a5paper]{article}
+\documentclass[a5paper,twoside]{article}
 \usepackage{german,color}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{calc}
-\usepackage{hyperref}
+\usepackage[linkbordercolor={1 0.7 0.7}]{hyperref}
+
+\hypersetup{
+  pdftitle    = {Handbuch Alternativ-Firmware für Sparmatic Comet},
+  pdfsubject  = {Alternativ-Firmware für Sparmatic Comet},
+  pdfauthor   = {Jörg Wunsch},
+  pdfkeywords = {Handbuch},
+  pdfcreator  = {pdflatex},
+  pdfproducer = {LaTeX with hyperref}
+}
 
 \newcommand\SC{"`Sparmatic Comet"'}
 
@@ -31,8 +40,9 @@ Jörg Wunsch
 \maketitle
 \thispagestyle{empty}
 \pagebreak
+\cleardoublepage
 
-%%\tableofcontents
+\tableofcontents
 
 \section {
 Beschreibung der Hardware
