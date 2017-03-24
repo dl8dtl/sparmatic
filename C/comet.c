@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 0e7cfa65d7f0 2017/03/23 21:37:41 "Joerg $ */
+/* $Id: comet.c,v c9410094fdb0 2017/03/24 12:39:06 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -64,7 +64,7 @@ uint8_t PSC1 = 4;
 uint16_t SetTemp = 200;
 int16_t TempOffset;
 uint16_t Ek;
-uint8_t RegWay;
+int8_t RegWay;
 uint8_t DisplayCT;
 uint8_t BeepCT;
 uint8_t BeepLen;
@@ -964,7 +964,7 @@ void CloseValve(uint8_t amount)
     // ignore closing the valve, if valve is fully closed
     if (MotTimeOut & BotLimit)
         return;
-    RegWay = amount;
+    RegWay = -amount;
     Status0 |= MotDir; // close valve
     if (Status0 & MotRun)
         // do not store new motor position, if motor is running
@@ -2082,7 +2082,7 @@ bool Menu_Dbg_3(uint8_t task __attribute__((unused)))
 bool Menu_Dbg_4(uint8_t task __attribute__((unused)))
 {
     ClearColon();
-    PutFormatted(FSTR("RWAY\n%4d"), RegWay);
+    PutFormatted(FSTR("RWAY\n%+4d"), RegWay);
 
     return false;
 }
