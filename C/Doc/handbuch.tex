@@ -10,11 +10,13 @@
 \newcommand\SC{"`Sparmatic Comet"' }
 
 \title {
-Bedienungsanleitung Alternativ-Fimrware für \SC
+  Bedienungsanleitung Alternativ-Firmware für \SC\\
+  \vspace*{1cm}
+  {\centering\includegraphics[width=0.63\linewidth]{Comet.jpg}}
 }
 
 \author {
-\sf Jörg Wunsch
+Jörg Wunsch
 }
 
 %% if you wanna set a specified date:
@@ -25,8 +27,9 @@ Bedienungsanleitung Alternativ-Fimrware für \SC
 \sloppy
 
 \begin {document}
-
 \maketitle
+\thispagestyle{empty}
+\pagebreak
 
 %%\tableofcontents
 
@@ -133,10 +136,10 @@ der Regelung geändert.
 Die Inbetriebnahme erfolgt durch Einlegen von 2 Batterien LR6 in das
 Batteriefach.  Im Display erscheinen nach links wandernde kleine
 Pfeile, die andeuten, dass der Stellmotor das Ventil maximal öffnet.
-Anschließend blinkt der Text "`INST OK"'.  In diesem Zustand sollte
+Anschließend blinkt der Text \texttt{INST OK}.  In diesem Zustand sollte
 das Ventil auf den Heizkörper aufgesteckt werden.
 
-Danach wird die "`OK"'-Taste betätigt, und die Firmware führt eine
+Danach wird die \texttt{OK}-Taste betätigt, und die Firmware führt eine
 Erstkalibrierung des Ventilwegs durch.
 
 Danach sollte sinnvollerweise noch das aktuelle Datum sowie die
@@ -145,7 +148,7 @@ Uhrzeit eingetragen werden.
 Das \SC befindet sich danach im manuellen Betriebsmodus.
 
 \subsection {
-  Betriebsmodi: MANU vs. AUTO
+  Betriebsmodi: \texttt{MANU} vs. \texttt{AUTO}
 }
 
 Im manuellen Modus wechselt
@@ -153,7 +156,9 @@ die Anzeige zwischen aktueller Uhrzeit und letzter gemessener
 Temperatur.
 
 In diesem Modus regelt die Regelung auf die eingestellte Solltemperatur.
-Die Solltemperatur lässt sich mit dem Einstellrädchen ändern.
+Die Solltemperatur lässt sich mit dem Einstellrädchen ändern.  Die
+Änderung wird sofort wirksam; nach einigen Sekunden geht die Anzeige
+wieder in ihren Wechsel zwischen Ist-Temperatur und Uhrzeit zurück.
 
 Im Automatikmodus wird die Solltemperatur für die Regelung bei jedem
 Übergang zwischen den einzelnen Zuständen ("`im Haus"', "`außer Haus"'
@@ -162,6 +167,188 @@ kann danach wie im manuellen Modus mit dem Stell-Rad noch geändert
 werden; in diesem Falle bleibt er bis zum nächsten Übergang auf einen
 der voreingestellten Werte erhalten.
 
+Für die Benutzung des Automatikmodus ist es notwendig, vorher das
+Temperaturprofil zu programmieren.
+
+\subsection {
+  Menüführung
+}
+
+Durch Betätigen der Taste \texttt{MENU} wechselt man in den
+Menü-Modus.  Durch Drehen des Stell-Rads durchläuft man anschließend
+die Menüs der Hauptebene.  Die Auswahl eines Menüs daraus erfolgt
+durch Betätigen der Taste \texttt{OK}.  Einzelne Menüs haben danach
+weitere Untermenüs, zu denen ebenfalls durch die Taste \texttt{OK}
+weitergeschaltet wird.  Innerhalb des Menüs lässt sich der aktuelle
+Wert durch Drehen des Stell-Rads verändern.
+
+Durch erneutes Betätigen der Taste \texttt{MENU} gelangt man aus dem
+Menü-Modus stets zurück in den Standard-Modus (Anzeige von
+Ist-Temperatur und Uhrzeit).
+
+Die Menüpunkte der obersten Ebene werden im Folgenden beschrieben.
+
+\subsubsection {
+  Menü \texttt{MODE}
+}
+
+In diesem Menü wird zwischen manueller Betriebsart (Anzeige
+\texttt{MANU}\,) und automatischer Betriebsart (Anzeige \texttt{AUTO}\,)
+umgeschaltet.  Beim Drücken der Taste \texttt{OK} wird die Betriebsart
+entsprechend gewechselt.  Die Anzeige Nr. 5 in Bild \ref{LCD} zeigt die
+aktuell wirksame Betriebsart an.  Beim Wechsel auf Automatik-Modus
+wird anschließend die Soll-Temperatur entsprechend dem aktuellen Tag
+und Uhrzeit gemäß Temperaturprofil aktiviert.  Beim Wechsel auf
+manuellen Modus bleibt die zuletzt wirksam gewesene Soll-Temperatur
+eingestellt.
+
+\subsubsection {
+  Menü \texttt{PROG}
+}
+
+In diesem Menü erfolgt die Programmierung der Temperaturprofile für
+den Automatikmodus.
+
+\subsubsection {
+  Menü \texttt{TEMP}
+}
+
+In diesem Menü erfolgt die Festlegung der Solltemperaturen für die
+einzelnen Zeitfenster des Automatikmodus.
+
+\subsubsection {
+  Menü \texttt{ZEIT}
+}
+
+In diesem Menü erfolgt die Einstellung von Datum und Uhrzeit.
+
+Eine korrekte Einstellung der geräteinternen Uhr ist wichtig, wenn
+der Automatikmodus benutzt werden soll.
+
+Beim Batteriewechsel wird die aktuelle Zeiteinstellung in einem
+nichtflüchtigen Speicher (EEPROM) im Gerät zwischengespeichert.  Nach
+dem Einsetzen neuer Batterien läuft sie mit dieser gespeicherten Zeit
+erneut an.  Natürlich kann die Uhr nicht weiterzählen, während keine
+Batterien im Gerät sind, es gehen also einige Sekunden dabei
+verloren.
+
+\subsubsection {
+  Menü \texttt{FENS}
+}
+
+Dieses Menü ist für die Funktion "`Fenster offen"' vorgesehen.
+
+Diese Funktion ist derzeit nicht implementiert.
+
+\subsubsection {
+  Menü \texttt{RES}
+}
+
+Dieses Menü dient dem vollständigen Rücksetzen aller gespeicherten
+Daten (Temperaturprofil, Ventilstellung und -stellweg).  Es sollte nur
+benutzt werden, wenn das \SC von einem Heizkörper zu einem anderen
+umgesetzt wird.
+
+Im Anschluss an die Bestätigung des \texttt{OK}-Punktes startet die
+Firmware komplett von vorn, beginnend mit einer Rekalibrierung, um
+sich auf den neuen Heizkörper einstellen zu können.
+
+\subsubsection {
+  Menü \texttt{ADAP}
+}
+
+Durch Bestätigung dieses Menüs mit der \texttt{OK}-Taste erfolgt
+eine Rekalibrierung der Ventilstellung.  Das Ventil wird zuerst
+vollständig geöffnet, es erscheint die Ausschrift \texttt{INST OK},
+und nach Drücken der \texttt{OK}-Taste werden die Positionen des
+Heizkörperventils für "`offen"' und "`geschlossen" erfasst.
+
+Danach wird zum normalen Regel-Modus zurückgekehrt.
+
+\subsubsection {
+  Menü \texttt{URLA}
+}
+
+In diesem Menü wird die Urlaubs-Funktion aktiviert.
+
+Durch Drehen des Stell-Rads kann das Datum für das Ende des Urlaubs
+eingestellt werden, beginnend beim Jahr.  Die Anzeige wechselt dabei
+jeweils zwischen \texttt{URLA} (bzw. Teilen davon) und dem aktuellen
+Wert.
+
+Die Urlaubsfunktion wird aktiv, sowie alle drei Werte (Jahr, Monat
+und Tag) eingestellt worden sind.  Während des Einstellens wird
+die Anzeige für den Wochentag (Nr. 3 in Bild \ref{LCD}) entsprechend
+des gewählten Datums für das Urlaubsende aktualisiert.
+
+Beim Erreichen des eingestellten Datums (Mitternacht) wird die
+Urlaubsfunktion anschließend automatisch deaktiviert, und das reguläre
+Temperaturprofil reaktiviert.
+
+Während des Urlaubs-Modus wird das normale Temperaturprofile bewertet
+wie sonst, aber statt der "`zu Hause"'-Temperatur wird die "`außer
+Haus"'-Temperatur als Sollwert vorgegeben.  Die Nachttemperatur
+verbleibt dagegen in gleicher Weise wie im normalen Automatik-Modus.
+
+Als Hinweis auf die aktive Urlaubs-Funktion wird das Symbol Nr. 6
+in Bild \ref{LCD} angezeigt.
+
+\subsubsection {
+  Menü \texttt{INST}
+}
+
+Durch Aktivieren dieses Menüpunktes öffnet sich das Ventil
+vollständig, sodass man es ohne Betätigungskraft erneut auf
+den Heizkörper aufstecken kann.
+
+Durch anschließendes Betätigen der \texttt{OK}-Taste schließt
+es sich wieder.
+
+\subsubsection {
+  Menü \texttt{OFFS}
+}
+
+In diesem Menü lässt sich ein Korrekturfaktor zur internen
+Temperaturmessung festlegen.  Die Einstellung erfolgt in Schritten zu
+0,5 K.  Der eingestellte Wert wird zur gemessenen Temperatur addiert;
+ist er negativ, wird die Temperatur also um den Betrag dieses Werts
+reduziert.
+
+Die Anzeige der Ist-Temperatur im regulären Anzeigemodus
+berücksichtigt diesen Wert.
+
+\subsubsection {
+  Menü \texttt{DBUG}
+}
+
+In diesem Untermenü können einzelne interne Parameter der Firmware
+abgefragt werden, um die Funktion zu überprüfen bzw. Fehler eingrenzen
+zu können.  Im Einzelnen sind dies:
+
+\begin{description}
+\item[\texttt{FIRM}] Versionsnummer der Firmware
+\item[\texttt{FUZZ}] Gegenwärtiger Zustand des Regelalgorithmus,
+  bestehend aus zwei Buchstaben.  Erster Buchstabe, Zustand:
+  \begin{description}
+  \item[\texttt{O}] Temperatur im Sollbereich ("`OK"')
+  \item[\texttt{W}] Temperatur zu warm
+  \item[\texttt{H}] Temperatur zu heiß
+  \item[\texttt{C}] Temperatur zu kühl ("`Cool"')
+  \item[\texttt{D}] Temperatur zu kalt ("`Col\emph{d}"')
+  \item[\texttt{A}] Temperatur viel zu heiß ("`Above"')
+  \item[\texttt{B}] Temperatur viel zu kalt ("`Below"')
+  \end{description}
+  Zweiter Buchstabe, Tendenz:
+  \begin{description}
+  \item[\texttt{S}] Temperatur gleichbleibend ("`Static"')
+  \item[\texttt{R}] Temperatur steigt ("`Rising"')
+  \item[\texttt{F}] Temperatur fällt
+  \end{description}
+\item[\texttt{POSI}] Aktuelle Ventilposition, 0 = geschlossen
+\item[\texttt{VTOP}] Position für "`Ventil ganz geöffnet"'
+\item[\texttt{RWAY}] Anzahl der Schritte in der letzten Regel-Aktion
+\item[\texttt{$\Delta$TMP}] Letzte und vorletzte Temperaturdifferenz, hexadezimal
+\end{description}
 
 \end {document}
 
