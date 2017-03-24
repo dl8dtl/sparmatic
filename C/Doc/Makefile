@@ -37,7 +37,7 @@ all: handbuch.pdf
 clean:
 	@echo Cleaning...
 	#@rm -f *.dvi *.log *.aux *.lj *.ps *.toc *.rtf *~ \#*\#
-	@rm -f *.dvi *.log *.aux *.lj *.toc *.rtf *~ \#*\#
+	@rm -f *.dvi *.log *.aux *.lj *.toc *.out *.rtf *~ \#*\#
 
 print:
 	@if expr "`echo *.ps`" : '*\.ps' > /dev/null ; \
