@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v c9410094fdb0 2017/03/24 12:39:06 "Joerg $ */
+/* $Id: comet.c,v 2415bf4e2043 2017/03/25 09:29:48 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -3183,6 +3183,7 @@ void Clock(void)
             Urlaub.Years = 0;
             Urlaub.Months = 0;
             Urlaub.Days = 0;
+            PutSymbol(LCD_Case_CLR, 3);
         }
     }
 
