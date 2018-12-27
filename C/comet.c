@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: comet.c,v 2415bf4e2043 2017/03/25 09:29:48 "Joerg $ */
+/* $Id: comet.c,v 89d3b7067db7 2018/12/27 22:53:56 "Joerg $ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -77,6 +77,9 @@ uint8_t OldBarBlink;
 uint8_t FuzzyVal;
 //uint8_t FuzzyCounter;
 uint8_t test;
+uint32_t ValveLastOpened;
+uint32_t TimeLastFixed;
+uint8_t AmountPositionFixed;
 
 enum
 {
@@ -827,6 +830,8 @@ static void StartMain(void)
         Position = 0;
         AdaptStep = 0;
         Status0 |= Adapt;
+        AmountPositionFixed = 0; // reset position fix counter
+        ValveLastOpened = TOD.Ticks = 0;
     }
     else
     {
@@ -939,6 +944,8 @@ void OpenValve(uint8_t amount)
     }
     if (MotTimeOut & TopLimit)
         return;
+    ValveLastOpened = TOD.Ticks;
+    AmountPositionFixed = 0; // reset position fix counter
     RegWay = amount;
     Status0 &= ~MotDir; // open valve
     if (Status0 & MotRun)
@@ -974,6 +981,47 @@ void CloseValve(uint8_t amount)
     RFLXCT = amount;
 }
 
+static void FixPosition(void)
+{
+    // Valve is at position 0 but it's still hot.  Let's see whether
+    // it makes sense to try adjusting the position, so the another
+    // motor step can be attempted.
+    if (TOD.Months > 3 && TOD.Months < 8)
+        // during summer, it's probably just that hot, really
+        return;
+    if (TOD.Ticks - ValveLastOpened > 86400)
+        // no valve opening within last 24 hours, so heating up
+        // is unlikely caused by losing steps
+        return;
+    if (TOD.Ticks - TimeLastFixed > 600 * AmountPositionFixed)
+        // already performed a fix recently, wait
+        return;
+    if (TOD.Ticks < 1800)
+        // after reboot or adaptation, valve had been fully
+        // opened so heating might get hot; wait for half an
+        // hour
+    TimeLastFixed = TOD.Ticks;
+    switch (AmountPositionFixed)
+    {
+        default:
+            // no more position fixes to try
+            return;
+
+        case 0:
+            Position = 1;
+            break;
+
+        case 1:
+            Position = 3;
+            break;
+
+        case 2:
+            Position = 10;
+            break;
+    }
+    AmountPositionFixed++;
+}
+
 
 void Regulate(void)
 {
@@ -1002,6 +1050,10 @@ void Regulate(void)
                 CloseValve(50);
                 break;
             case TRise:
+                if (Position == 0)
+                    // valve is supposed to be closed but
+                    // maybe isn't actually closed
+                    FixPosition();
                 CloseValve(100);
                 break;
         }
@@ -1018,6 +1070,10 @@ void Regulate(void)
                 RegWay = 0;
                 return;
             case TRise:
+                if (Position == 0)
+                    // valve is supposed to be closed but
+                    // maybe isn't actually closed
+                    FixPosition();
                 CloseValve(20 * dt);
                 break;
         }

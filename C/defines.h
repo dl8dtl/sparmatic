@@ -7,7 +7,7 @@
  * Placed into the Public Domain.
  */
 
-/* $Id: defines.h,v c9410094fdb0 2017/03/24 12:39:06 "Joerg $ */
+/* $Id: defines.h,v 89d3b7067db7 2018/12/27 22:53:56 "Joerg $ */
 
 #include <stdint.h>
 
@@ -161,6 +161,7 @@ extern uint8_t FreeMotorCurrent;
 extern uint8_t ADCPrescaler;
 struct time
 {
+    uint32_t Ticks;
     uint8_t Seconds;
     uint8_t Minutes;
     uint8_t Hours;
