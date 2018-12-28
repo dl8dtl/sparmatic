@@ -18,9 +18,9 @@ Details
 There is a lengthy thread in the (German) mikrocontroller.net
 forum dealing with all the details of these devices:
 
-(https://www.mikrocontroller.net/topic/237375)
+https://www.mikrocontroller.net/topic/237375)
 
-(https://www.mikrocontroller.net/topic/237375?page=1#2407844 "This entry")
+https://www.mikrocontroller.net/topic/237375?page=1#2407844
 contains links to schematics and photos of the device.
 
 Firmware
