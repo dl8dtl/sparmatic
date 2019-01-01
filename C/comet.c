@@ -56,7 +56,7 @@ uint8_t MotTimeOut;
 uint8_t AdaptStep;
 uint8_t MotorCurrent;
 uint8_t FreeMotorCurrent;
-uint8_t ADCPrescaler;
+uint8_t ADCPrescaler; // number of timer ticks (0.25 s) till next temperature readout
 struct time TOD, Urlaub;
 uint8_t UserDisplay;
 uint16_t iNTCV;
@@ -610,8 +610,8 @@ ISR(TIMER2_OVF_vect)
         if (!(Status0 & Adapt) &&
             --ADCPrescaler == 0)
         {
-            ADCPrescaler = 100;
-            Status1 |= NewTemp;
+            ADCPrescaler = 100; // next temperature readout in 25 s
+            Status1 |= NewTemp; // trigger temperature readout
         }
         if (ActiveCT != 0)
         {
@@ -830,7 +830,7 @@ static void StartMain(void)
     }
     else
     {
-        ADCPrescaler = 3;
+        ADCPrescaler = 3; // next temperature readout in 0.75 s
         UserDisplay = 0;
         DisplayCT = 0;
         DispTimer = 0;
@@ -1496,7 +1496,7 @@ void Adaptation(void)
             DisplayBuffer2[6] &= ~1;
             ValveTop = Position - 80; // subtact margin to full open position
             Position = 0;
-            ADCPrescaler = 3;
+            ADCPrescaler = 3; // next temperature readout in 0.75 s
             UserDisplay = 0;
             DisplayCT = 0;
             DispTimer = 0;
@@ -1678,7 +1678,7 @@ static void Set_SetTemperature_Up(void)
         SetTemp += 5; // +0.5 K
         UserDisplay = 5;
     }
-    ADCPrescaler = 10;
+    ADCPrescaler = 10; // next temperature readout in 2.5 s
 }
 
 static void Set_SetTemperature_Down(void)
@@ -1688,7 +1688,7 @@ static void Set_SetTemperature_Down(void)
         SetTemp -= 5; // -0.5 K
         UserDisplay = 5;
     }
-    ADCPrescaler = 10;
+    ADCPrescaler = 10; // next temperature readout in 2.5 s
 }
 
 static void EvalAutoMode(void)
