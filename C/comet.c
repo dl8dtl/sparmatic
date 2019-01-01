@@ -586,7 +586,7 @@ ISR(LCD_vect)
         MotTimeOut++;
 }
 
-/* SystemTime() */
+/* SystemTime(), called with 4 Hz rate */
 ISR(TIMER2_OVF_vect)
 {
     DispTimer = (DispTimer + 1) & 3;
@@ -664,8 +664,8 @@ void ioinit(void)
     TCCR0A = 0b00001001; //CTC, prescaler 1
     OCR0A = 3;
     //setup Timer2 for SystemTime
-    TCCR2A = (0<<CS22)| (1<<CS21) | (1<<CS20); //Normal mode, prescaler 32
-    TIMSK2 = (1<<TOIE2); //Overflow interrupt T2_A enabled
+    TCCR2A = (0<<CS22)| (1<<CS21) | (1<<CS20); //Normal mode, prescaler 32 => 1024 Hz clock
+    TIMSK2 = (1<<TOIE2); //Overflow interrupt T2_A enabled => 4 Hz interrupt rate
     ASSR = (1<<AS2);
 
     BacklightPort &= ~Backlight_On;
