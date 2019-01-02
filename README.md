@@ -23,6 +23,10 @@ https://www.mikrocontroller.net/topic/237375)
 https://www.mikrocontroller.net/topic/237375?page=1#2407844
 contains links to schematics and photos of the device.
 
+Wiki page with many details (in German language):
+
+https://www.mikrocontroller.net/articles/Sparmatic_Heizungsthermostate
+
 Firmware
 --------
 
